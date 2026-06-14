@@ -39,7 +39,7 @@
 | T-02 | List transactions (paginated) | P0 | 3 | `[ ]` | Default last 30 days; cursor pagination; <200ms p95 |
 | T-03 | Edit transaction | P0 | 2 | `[ ]` | All fields editable; updated_at set |
 | T-04 | Delete transaction (soft) | P0 | 1 | `[ ]` | Sets deleted_at; data recoverable 30 days |
-| T-05 | Create/manage categories | P0 | 3 | `[ ]` | Max 50 per user; color validated as hex |
+| T-05 | Create/manage categories | P0 | 3 | `[x]` | Max 50 per user; color validated as hex |
 | T-06 | Filter by date, category, type | Must | 3 | `[ ]` | Filters combinable; URL-param driven |
 | T-07 | Search by note text | Should | 2 | `[ ]` | PostgreSQL full-text; min 3 chars; Phase 2 |
 | T-08 | Import from CSV | Could | 8 | `[ ]` | Column mapping; preview; Phase 3 |

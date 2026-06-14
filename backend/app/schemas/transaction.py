@@ -1,0 +1,36 @@
+import uuid
+from datetime import date, datetime
+
+from pydantic import BaseModel, Field
+
+
+class TransactionCreate(BaseModel):
+    amount_cents: int = Field(gt=0)
+    category_id: uuid.UUID
+    tx_date: date
+    note: str | None = Field(None, max_length=500)
+
+
+class TransactionUpdate(BaseModel):
+    amount_cents: int | None = Field(None, gt=0)
+    category_id: uuid.UUID | None = None
+    tx_date: date | None = None
+    note: str | None = Field(None, max_length=500)
+
+
+class TransactionOut(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: uuid.UUID
+    user_id: uuid.UUID
+    category_id: uuid.UUID | None
+    amount_cents: int
+    note: str | None
+    tx_date: date
+    created_at: datetime
+    updated_at: datetime
+
+
+class TransactionList(BaseModel):
+    items: list[TransactionOut]
+    next_cursor: uuid.UUID | None
