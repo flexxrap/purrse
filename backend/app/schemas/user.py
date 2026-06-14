@@ -1,0 +1,25 @@
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+
+
+class UserOut(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: uuid.UUID
+    email: str | None
+    telegram_id: int | None
+    currency: str
+    created_at: datetime
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut

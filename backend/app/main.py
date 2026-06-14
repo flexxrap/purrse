@@ -53,6 +53,11 @@ async def security_headers(request: Request, call_next):
     return response
 
 
+from app.routers import auth  # noqa: E402
+
+app.include_router(auth.router)
+
+
 @app.get("/health", tags=["health"])
 async def health():
     return JSONResponse({"status": "ok"})
