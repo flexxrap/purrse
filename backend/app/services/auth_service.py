@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import hmac
 import json
@@ -18,6 +19,7 @@ from app.config import settings
 from app.models.audit_log import AuditLog
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
+from app.services import telegram_service
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +220,8 @@ async def telegram_login(
     result = await db.execute(select(User).where(User.telegram_id == telegram_id))
     user = result.scalar_one_or_none()
 
-    if user is None:
+    is_new = user is None
+    if is_new:
         user = User(telegram_id=telegram_id)
         db.add(user)
         await db.flush()
@@ -227,7 +230,26 @@ async def telegram_login(
     await _write_audit(db, "telegram_login", str(user.id), request)
     await db.commit()
     await db.refresh(user)
+
+    if is_new:
+        asyncio.create_task(_send_welcome(telegram_id))
+
     return user, access_token, raw_token
+
+
+async def _send_welcome(telegram_id: int) -> None:
+    text = (
+        "🎉 Привет! Ты в purrse.\n\n"
+        "Аккаунт создан — теперь отслеживай доходы и расходы по категориям, "
+        "ставь финансовые цели и следи за бюджетом.\n\n"
+        "Возвращайся в любое время 👇"
+    )
+    keyboard = {
+        "inline_keyboard": [[
+            {"text": "💰 Открыть purrse", "web_app": {"url": settings.FRONTEND_URL}}
+        ]]
+    }
+    await telegram_service.send_message(telegram_id, text, reply_markup=keyboard)
 
 
 async def register(
