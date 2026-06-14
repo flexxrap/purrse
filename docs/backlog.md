@@ -68,7 +68,7 @@
 | S-01 | GitHub repo + branch protection | P0 | 1 | `[x]` | Direct push to main blocked; CI required |
 | S-02 | CI: lint + test + Bandit + Trivy | P0 | 3 | `[x]` | Pipeline <5 min; HIGH findings block merge |
 | S-03 | Docker multi-stage build | P0 | 2 | `[x]` | Image <200 MB; non-root user |
-| S-04 | Railway deploy + env secrets | P0 | 2 | `[ ]` | No secrets in code; prod URL live |
+| S-04 | Railway deploy + env secrets | P0 | 2 | `[x]` | No secrets in code; prod URL live |
 | S-05 | HTTPS + HSTS | P0 | 1 | `[x]` | Railway auto-TLS; HSTS header |
 | S-06 | Rate limiting on auth endpoints | P0 | 2 | `[x]` | 60/min per IP; 429 with Retry-After |
 | S-07 | Security headers middleware | P0 | 2 | `[x]` | CSP, X-Frame-Options, etc. |
