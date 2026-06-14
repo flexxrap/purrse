@@ -62,11 +62,16 @@ async def test_webhook_start_command(client):
             headers={"X-Telegram-Bot-Api-Secret-Token": _WEBHOOK_SECRET},
         )
     assert resp.status_code == 200
-    mock_send.assert_awaited_once()
-    args = mock_send.call_args
-    assert args[0][0] == 12345  # telegram_id
-    assert "purrse" in args[0][1]  # welcome text
-    assert args[1].get("reply_markup") is not None  # has WebApp button
+    assert mock_send.await_count == 2  # welcome message + persistent reply keyboard
+
+    welcome_args = mock_send.call_args_list[0]
+    assert welcome_args[0][0] == 12345  # telegram_id
+    assert "purrse" in welcome_args[0][1]  # welcome text
+    assert welcome_args[1].get("reply_markup", {}).get("inline_keyboard")  # has WebApp button
+
+    keyboard_args = mock_send.call_args_list[1]
+    assert keyboard_args[0][0] == 12345  # telegram_id
+    assert keyboard_args[1].get("reply_markup", {}).get("keyboard")  # persistent reply keyboard
 
 
 @pytest.mark.asyncio
