@@ -65,15 +65,15 @@
 
 | ID | Task | Priority | SP | Status | Acceptance Criteria |
 |----|------|----------|----|--------|---------------------|
-| S-01 | GitHub repo + branch protection | P0 | 1 | `[ ]` | Direct push to main blocked; CI required |
-| S-02 | CI: lint + test + Bandit + Trivy | P0 | 3 | `[ ]` | Pipeline <5 min; HIGH findings block merge |
+| S-01 | GitHub repo + branch protection | P0 | 1 | `[x]` | Direct push to main blocked; CI required |
+| S-02 | CI: lint + test + Bandit + Trivy | P0 | 3 | `[x]` | Pipeline <5 min; HIGH findings block merge |
 | S-03 | Docker multi-stage build | P0 | 2 | `[ ]` | Image <200 MB; non-root user |
 | S-04 | Railway deploy + env secrets | P0 | 2 | `[ ]` | No secrets in code; prod URL live |
 | S-05 | HTTPS + HSTS | P0 | 1 | `[ ]` | Railway auto-TLS; HSTS header |
 | S-06 | Rate limiting on auth endpoints | P0 | 2 | `[ ]` | 60/min per IP; 429 with Retry-After |
 | S-07 | Security headers middleware | P0 | 2 | `[ ]` | CSP, X-Frame-Options, etc. |
 | S-08 | Automated DB backups to R2 | Must | 3 | `[ ]` | Daily; verified restore; Phase 2 |
-| S-09 | Dependabot for Python + npm | Must | 1 | `[ ]` | PRs within 24h of new CVE |
+| S-09 | Dependabot for Python + npm | Must | 1 | `[x]` | PRs within 24h of new CVE |
 | S-10 | Sentry integration | Must | 2 | `[ ]` | Errors in Sentry <30s; p95 tracked |
 | S-11 | GDPR: export + deletion | Should | 3 | `[ ]` | JSON export; deletion <30s; Phase 2 |
 | S-12 | DB connection pooling | Should | 2 | `[ ]` | Pool 10; overflow 20; Phase 2 |
