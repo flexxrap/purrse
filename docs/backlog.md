@@ -21,9 +21,9 @@
 | ID | Story | Priority | SP | Status | AC |
 |----|-------|----------|----|--------|----|
 | A-01 | Register with email + password | P0 | 3 | `[x]` | bcrypt stored; JWT returned; 400 on duplicate email |
-| A-02 | Login → JWT + refresh cookie | P0 | 3 | `[ ]` | Access 15 min; httpOnly cookie 30 days; /me returns user |
-| A-03 | Refresh session silently | P0 | 2 | `[ ]` | Silent refresh before expiry; revoked token → 401 |
-| A-04 | Logout + invalidate session | P0 | 1 | `[ ]` | refresh_tokens.revoked=true; cookie cleared |
+| A-02 | Login → JWT + refresh cookie | P0 | 3 | `[x]` | Access 15 min; httpOnly cookie 30 days; /me returns user |
+| A-03 | Refresh session silently | P0 | 2 | `[x]` | Silent refresh before expiry; revoked token → 401 |
+| A-04 | Logout + invalidate session | P0 | 1 | `[x]` | refresh_tokens.revoked=true; cookie cleared |
 | A-05 | Telegram Mini App login | P0 | 5 | `[ ]` | initData HMAC verified; user upserted; JWT issued |
 | A-06 | Update email or currency | Should | 2 | `[ ]` | Validation; email uniqueness check |
 | A-07 | Delete account + all data | Should | 3 | `[ ]` | Cascade delete; GDPR; Phase 2 |
