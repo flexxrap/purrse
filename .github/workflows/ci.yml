@@ -58,7 +58,7 @@ jobs:
           image-ref: budget-app:ci
           exit-code: "1"
           severity: CRITICAL
-          trivyignore-file: .trivyignore
+          trivyignores: .trivyignore
 
   deploy:
     runs-on: ubuntu-latest
@@ -66,7 +66,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-      - uses: railwayapp/railway-cli-action@v1
-        with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          command: up --detach
+      - name: Install Railway CLI
+        run: curl -fsSL https://railway.app/install.sh | sh
+      - name: Deploy to Railway
+        run: railway up --detach --service backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
