@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '../store/themeStore'
 import { Logo } from '../components/Logo'
 import useAuth from '../hooks/useAuth'
+import useAuthStore from '../store/authStore'
+import authApi from '../api/auth'
 import { apiError } from '../utils'
 
 const LoginPage = () => {
@@ -13,12 +15,38 @@ const LoginPage = () => {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [tgLoading, setTgLoading] = useState(false)
+  const [tgError, setTgError] = useState(false)
 
   const { login, register } = useAuth()
+  const { setAuth } = useAuthStore()
   const navigate = useNavigate()
   const { theme } = useThemeStore()
   const { t } = useTranslation()
   const isDark = theme === 'dark'
+
+  const tg = window.Telegram?.WebApp
+  const isTelegramWebApp = !!(tg?.initData)
+
+  const tryTelegramLogin = () => {
+    if (!tg?.initData) return
+    setTgLoading(true)
+    setTgError(false)
+    authApi.telegramLogin(tg.initData)
+      .then(({ access_token, user }) => {
+        setAuth(access_token, user)
+        navigate('/dashboard')
+      })
+      .catch(() => {
+        setTgLoading(false)
+        setTgError(true)
+      })
+  }
+
+  useEffect(() => {
+    if (isTelegramWebApp) tryTelegramLogin()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
@@ -86,6 +114,36 @@ const LoginPage = () => {
           boxShadow: isDark ? '0 4px 40px rgba(0,0,0,0.4)' : '0 4px 40px rgba(229,43,80,0.06)',
         }}
       >
+        {/* Telegram loading/error state */}
+        {isTelegramWebApp && (
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <Logo size={48} dark={isDark} />
+            {tgLoading && (
+              <>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 600, margin: '12px 0 4px' }}>purrse</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>Входим через Telegram…</p>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+                  <div style={{ width: '24px', height: '24px', border: '3px solid var(--border-card)', borderTopColor: 'var(--amaranth)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                </div>
+              </>
+            )}
+            {tgError && (
+              <>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 600, margin: '12px 0 4px' }}>Не удалось войти</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 0 16px' }}>Попробуй ещё раз или войди по почте</p>
+                <motion.div whileTap={{ scale: 0.97 }} onClick={tryTelegramLogin}
+                  style={{ background: 'var(--amaranth-btn)', color: 'white', borderRadius: '10px', padding: '11px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', userSelect: 'none', marginBottom: '10px' }}
+                >
+                  Повторить
+                </motion.div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Hide email form while Telegram loading or Telegram success */}
+        {(!isTelegramWebApp || tgError) && <>
+
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -191,6 +249,7 @@ const LoginPage = () => {
             )}
           </motion.div>
         </div>
+        </>}
       </motion.div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
