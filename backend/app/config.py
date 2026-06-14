@@ -9,11 +9,15 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     BOT_TOKEN: str
     FRONTEND_URL: str
+    EXTRA_ORIGINS: str = ""  # comma-separated extra allowed origins (e.g. localhost for dev)
     SENTRY_DSN: str = ""
 
     @property
     def ALLOWED_ORIGINS(self) -> list[str]:
-        return [self.FRONTEND_URL]
+        origins = [self.FRONTEND_URL]
+        if self.EXTRA_ORIGINS:
+            origins.extend(o.strip() for o in self.EXTRA_ORIGINS.split(",") if o.strip())
+        return origins
 
 
 settings = Settings()
