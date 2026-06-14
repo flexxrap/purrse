@@ -12,7 +12,9 @@
 - `[ ]` = Todo
 - `[-]` = Skipped / deferred to later phase
 
-**Current focus: Phase 1 MVP**
+**Current focus: Backend Phase 2**
+
+> ⚠️ Backend Phase 2 stories to revisit: A-06 (update profile), A-07 (delete account), A-08 (change password), T-07 (full-text search), T-09 (CSV export), D-04 (budget bars), D-06 (budget alerts + Telegram notify), S-08 (DB backups), S-11 (GDPR), S-12 (connection pooling)
 
 ---
 
@@ -86,6 +88,7 @@
 | Phase | Stories | Status |
 |-------|---------|--------|
 | Phase 1 MVP | A-01..A-05, T-01..T-06, D-01..D-03, D-05, S-01..S-07, S-09, S-10, S-13 | **Complete** ✅ |
+| Phase F Frontend | React SPA: all 5 tabs, design system, dark mode, i18n EN/RU, Framer Motion | **Complete** ✅ |
 | Phase 2 | A-06..A-08, T-07, T-09, D-04, D-06, S-08, S-11, S-12 | Not started |
 | Phase 3 | T-08, T-10 | Not started |
 
@@ -118,3 +121,8 @@
 - [x] S-09 Dependabot for Python + npm — Done 2026-06-05
 - [x] S-10 Sentry integration — Done 2026-06-05
 - [x] S-13 OWASP Top 10 checklist review — Done 2026-06-05
+- [x] F-01 React SPA frontend — all 5 tabs (Overview, Transactions, Goals, Categories, Settings) — Done 2026-06-10
+- [x] F-02 Design system: purrse branding, amaranth/blue palette, CSS variables — Done 2026-06-10
+- [x] F-03 Dark mode toggle (Zustand persist) — Done 2026-06-10
+- [x] F-04 i18n EN/RU (react-i18next) — Done 2026-06-10
+- [x] F-05 Framer Motion animations (cards, modals, progress bars, tab transitions) — Done 2026-06-10
