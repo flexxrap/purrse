@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import CheckConstraint, Index, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -29,5 +29,5 @@ class Category(Base):
     color: Mapped[str] = mapped_column(String(7), nullable=False)
     type: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False, server_default=func.now(), default=lambda: datetime.now(timezone.utc)
+        nullable=False, server_default=func.now(), default=datetime.utcnow
     )

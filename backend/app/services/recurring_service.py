@@ -86,7 +86,7 @@ async def update(
     if is_active is not None:
         rt.is_active = is_active
 
-    rt.updated_at = datetime.now(timezone.utc)
+    rt.updated_at = datetime.utcnow()
     db.add(rt)
     await db.commit()
     await db.refresh(rt)
@@ -120,7 +120,7 @@ async def process_due(db: AsyncSession) -> int:
     )
     due = list(result.scalars().all())
     created = 0
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     for rt in due:
         # May need to create multiple transactions if missed several periods
         current = rt.next_date

@@ -125,7 +125,7 @@ async def update(
     if deadline is not None:
         goal.deadline = deadline
 
-    goal.updated_at = datetime.now(timezone.utc)
+    goal.updated_at = datetime.utcnow()
     db.add(goal)
     await db.commit()
     await db.refresh(goal)

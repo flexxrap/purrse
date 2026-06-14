@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, select
@@ -31,7 +31,7 @@ async def update_me(user: User, data: UpdateMeRequest, db: AsyncSession) -> User
     if data.currency is not None:
         user.currency = data.currency.upper()
 
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.utcnow()
     db.add(user)
     await db.commit()
     await db.refresh(user)
@@ -137,6 +137,6 @@ async def change_password(
             detail="Old password is incorrect",
         )
     user.password_hash = hash_password(new_password)
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.utcnow()
     db.add(user)
     await db.commit()

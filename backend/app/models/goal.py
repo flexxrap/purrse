@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 
 from sqlalchemy import CheckConstraint, Date, Index, Integer, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -29,11 +29,11 @@ class Goal(Base):
     created_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.now(),
-        default=lambda: datetime.now(timezone.utc),
+        default=datetime.utcnow,
     )
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.now(),
-        default=lambda: datetime.now(timezone.utc),
+        default=datetime.utcnow,
         onupdate=func.now(),
     )

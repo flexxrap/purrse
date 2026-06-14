@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
@@ -35,11 +35,11 @@ async def upsert(
             category_id=category_id,
             month=month,
             limit_cents=limit_cents,
-            updated_at=datetime.now(timezone.utc),
+            updated_at=datetime.utcnow(),
         )
         .on_conflict_do_update(
             constraint="uq_budgets_user_category_month",
-            set_={"limit_cents": limit_cents, "updated_at": datetime.now(timezone.utc)},
+            set_={"limit_cents": limit_cents, "updated_at": datetime.utcnow()},
         )
         .returning(Budget)
     )

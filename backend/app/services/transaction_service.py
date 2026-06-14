@@ -137,7 +137,7 @@ async def update(
     if note is not None:
         tx.note = note
 
-    tx.updated_at = datetime.now(timezone.utc)
+    tx.updated_at = datetime.utcnow()
     db.add(tx)
     await db.commit()
     await db.refresh(tx)
@@ -177,7 +177,7 @@ async def bulk_create(
     db: AsyncSession,
 ) -> int:
     """Create multiple transactions without category validation. Returns count created."""
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     objs = [
         Transaction(
             user_id=user_id,
@@ -211,6 +211,6 @@ async def soft_delete(
     if tx is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
-    tx.deleted_at = datetime.now(timezone.utc)
+    tx.deleted_at = datetime.utcnow()
     db.add(tx)
     await db.commit()

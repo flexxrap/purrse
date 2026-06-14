@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import Boolean, CheckConstraint, Index, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -27,11 +27,11 @@ class Budget(Base):
     created_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.now(),
-        default=lambda: datetime.now(timezone.utc),
+        default=datetime.utcnow,
     )
     updated_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.now(),
-        default=lambda: datetime.now(timezone.utc),
+        default=datetime.utcnow,
         onupdate=func.now(),
     )
