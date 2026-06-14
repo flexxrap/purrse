@@ -15,9 +15,11 @@ const CategoryModal = ({ category, onSave, onClose, loading, error }) => {
   const [name, setName] = useState(category?.name || '')
   const [color, setColor] = useState(category?.color || '#E52B50')
   const [type, setType] = useState(category?.type || 'expense')
+  const [localError, setLocalError] = useState('')
 
   const handleSave = () => {
-    if (!name.trim()) return
+    if (!name.trim()) { setLocalError(t('categories.nameRequired')); return }
+    setLocalError('')
     onSave({ name: name.trim(), color, type })
   }
 
@@ -32,7 +34,7 @@ const CategoryModal = ({ category, onSave, onClose, loading, error }) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
+        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)', maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>
@@ -80,7 +82,7 @@ const CategoryModal = ({ category, onSave, onClose, loading, error }) => {
             </div>
           </div>
 
-          {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
+          {(localError || error) && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{localError || error}</div>}
         </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>

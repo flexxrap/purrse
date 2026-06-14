@@ -261,7 +261,7 @@ const DashboardPage = () => {
 
         {/* Main content */}
         <div className="md:ml-52 flex-1" style={{ minWidth: 0 }}>
-          <main style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px' }}>
+          <main style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 80px' }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

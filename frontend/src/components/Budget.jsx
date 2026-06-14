@@ -44,7 +44,7 @@ const BudgetModal = ({ categories, month, existing, onClose }) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
+        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)', maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>
@@ -79,7 +79,11 @@ const BudgetModal = ({ categories, month, existing, onClose }) => {
             style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}
           >{t('goals.cancel')}</motion.div>
           <motion.div whileTap={{ scale: 0.97 }}
-            onClick={() => { if (!categoryId || !amount) return; upsertMutation.mutate() }}
+            onClick={() => {
+              if (!categoryId) { setError(t('budget.errorCategory')); return }
+              if (!amount || parseFloat(amount) <= 0) { setError(t('budget.errorAmount')); return }
+              upsertMutation.mutate()
+            }}
             style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: upsertMutation.isPending ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: upsertMutation.isPending ? 0.7 : 1, userSelect: 'none' }}
           >{upsertMutation.isPending ? t('goals.saving') : t('goals.save')}</motion.div>
         </div>

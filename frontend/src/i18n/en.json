@@ -80,7 +80,8 @@
     "type": "Type",
     "cancel": "Cancel",
     "save": "Save",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "nameRequired": "Name is required"
   },
   "settings": {
     "title": "Settings",
@@ -117,7 +118,9 @@
     "empty": "No budgets set",
     "emptyHint": "Set spending limits per category",
     "saveError": "Failed to save",
-    "export": "Export CSV"
+    "export": "Export CSV",
+    "errorCategory": "Please select a category",
+    "errorAmount": "Enter an amount greater than 0"
   },
   "onboarding": {
     "title": "Welcome to purrse!",
