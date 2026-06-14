@@ -15,21 +15,32 @@ def _fmt(cents: int, currency: str) -> str:
     return f"{cents / 100:.2f} {currency}"
 
 
+_BTN_STATS = "📊 Статистика"
+_BTN_HELP = "❓ Помощь"
+
+_REPLY_KB = {
+    "keyboard": [[_BTN_STATS, _BTN_HELP]],
+    "resize_keyboard": True,
+    "persistent": True,
+}
+
+
 async def handle_update(update: dict, db: AsyncSession) -> None:
     message = update.get("message") or update.get("edited_message")
     if not message:
         return
     text: str = message.get("text", "")
     telegram_id: int | None = message.get("from", {}).get("id")
-    if not telegram_id or not text.startswith("/"):
+    if not telegram_id or not text:
         return
 
-    cmd = text.split()[0].split("@")[0]
+    cmd = text.split()[0].split("@")[0] if text.startswith("/") else text
+
     if cmd == "/start":
         await _cmd_start(telegram_id)
-    elif cmd == "/stats":
+    elif cmd in ("/stats", _BTN_STATS):
         await _cmd_stats(telegram_id, db)
-    elif cmd == "/help":
+    elif cmd in ("/help", _BTN_HELP):
         await _cmd_help(telegram_id)
 
 
@@ -40,12 +51,17 @@ async def _cmd_start(telegram_id: int) -> None:
         "ставь цели и контролируй бюджет.\n\n"
         "Нажми кнопку ниже, чтобы открыть приложение 👇"
     )
-    keyboard = {
+    inline_kb = {
         "inline_keyboard": [[
             {"text": "💰 Открыть purrse", "web_app": {"url": settings.FRONTEND_URL}}
         ]]
     }
-    await telegram_service.send_message(telegram_id, text, reply_markup=keyboard)
+    await telegram_service.send_message(telegram_id, text, reply_markup=inline_kb)
+    await telegram_service.send_message(
+        telegram_id,
+        "Быстрые кнопки всегда под рукой 👇",
+        reply_markup=_REPLY_KB,
+    )
 
 
 async def _cmd_stats(telegram_id: int, db: AsyncSession) -> None:
