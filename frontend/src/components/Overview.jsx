@@ -81,12 +81,12 @@ const Overview = ({ onQuickAdd }) => {
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => onQuickAdd?.('income')}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '14px', borderRadius: '12px', border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.08)', color: '#059669', fontSize: '14px', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
         >
-          <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span> {t('overview.addIncome')}
+          <span style={{ fontSize: '16px', lineHeight: 1, fontWeight: 700 }}>+</span> {t('overview.addIncome')}
         </motion.button>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => onQuickAdd?.('expense')}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '14px', borderRadius: '12px', border: '1px solid rgba(229,43,80,0.25)', background: 'rgba(229,43,80,0.08)', color: 'var(--icon-a-color)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
         >
-          <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span> {t('overview.addExpense')}
+          <span style={{ fontSize: '16px', lineHeight: 1, fontWeight: 700 }}>+</span> {t('overview.addExpense')}
         </motion.button>
       </div>
 
