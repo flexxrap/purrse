@@ -67,8 +67,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Railway CLI
-        run: curl -fsSL https://railway.app/install.sh | sh
+        run: curl -fsSL https://railway.app/install.sh | bash
       - name: Deploy to Railway
-        run: railway up --detach --service backend
+        run: ~/.railway/bin/railway up --detach --service backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
