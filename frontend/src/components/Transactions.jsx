@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -250,10 +250,12 @@ const RecurringModal = ({ onClose, onSuccess }) => {
   )
 }
 
-const TransactionModal = ({ transaction, categories, onSave, onClose, loading, error }) => {
+const TransactionModal = ({ transaction, categories, onSave, onClose, loading, error, initialType }) => {
   const { t } = useTranslation()
+  const defaultCat = transaction?.category_id
+    || (initialType ? (categories.find((c) => c.type === initialType)?.id || '') : '')
   const [amount, setAmount] = useState(transaction ? (transaction.amount_cents / 100).toFixed(2) : '')
-  const [categoryId, setCategoryId] = useState(transaction?.category_id || '')
+  const [categoryId, setCategoryId] = useState(defaultCat)
   const [txDate, setTxDate] = useState(transaction?.tx_date || today())
   const [note, setNote] = useState(transaction?.note || '')
   const [localError, setLocalError] = useState('')
@@ -333,7 +335,7 @@ const TransactionModal = ({ transaction, categories, onSave, onClose, loading, e
   )
 }
 
-const Transactions = () => {
+const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
   const { user } = useAuthStore()
   const { t } = useTranslation()
   const currency = user?.currency || 'USD'
@@ -343,6 +345,16 @@ const Transactions = () => {
   const [mutError, setMutError] = useState('')
   const [showImport, setShowImport] = useState(false)
   const [showRecurringModal, setShowRecurringModal] = useState(false)
+
+  // Open the add-transaction modal automatically when triggered from Overview quick-add
+  useEffect(() => {
+    if (quickAdd) {
+      setMutError('')
+      setModal({ tx: null, type: quickAdd })
+      onQuickAddConsumed?.()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quickAdd])
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list })
   const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c]))
@@ -568,7 +580,7 @@ const Transactions = () => {
           <TransactionModal
             transaction={modal.tx} categories={categories}
             onSave={handleSave} onClose={() => setModal(null)}
-            loading={isMutating} error={mutError}
+            loading={isMutating} error={mutError} initialType={modal.type}
           />
         )}
         {showImport && (

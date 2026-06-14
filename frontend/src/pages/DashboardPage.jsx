@@ -57,12 +57,12 @@ const OnboardingModal = ({ onDone, onGoCategories }) => {
 }
 
 const TABS = [
-  { id: 'overview',      key: 'nav.overview' },
-  { id: 'transactions',  key: 'nav.transactions' },
-  { id: 'goals',         key: 'nav.goals' },
-  { id: 'budget',        key: 'nav.budget' },
-  { id: 'categories',    key: 'nav.categories' },
-  { id: 'settings',      key: 'nav.settings' },
+  { id: 'overview',      key: 'nav.overview',     icon: '📊' },
+  { id: 'transactions',  key: 'nav.transactions', icon: '💸' },
+  { id: 'goals',         key: 'nav.goals',        icon: '🎯' },
+  { id: 'budget',        key: 'nav.budget',       icon: '📅' },
+  { id: 'categories',    key: 'nav.categories',   icon: '🏷️' },
+  { id: 'settings',      key: 'nav.settings',     icon: '⚙️' },
 ]
 
 const ghostBtn = {
@@ -81,8 +81,14 @@ const ghostBtn = {
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview')
+  const [pendingQuickAdd, setPendingQuickAdd] = useState(null)
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
   const { user } = useAuthStore()
+
+  const quickAddTransaction = (type) => {
+    setActiveTab('transactions')
+    setPendingQuickAdd(type)
+  }
 
   const closeOnboarding = () => {
     localStorage.setItem(ONBOARDING_KEY, '1')
@@ -111,8 +117,8 @@ const DashboardPage = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'overview':     return <Overview />
-      case 'transactions': return <Transactions />
+      case 'overview':     return <Overview onQuickAdd={quickAddTransaction} />
+      case 'transactions': return <Transactions quickAdd={pendingQuickAdd} onQuickAddConsumed={() => setPendingQuickAdd(null)} />
       case 'goals':        return <Goals />
       case 'budget':       return <Budget />
       case 'categories':   return <Categories />
@@ -146,6 +152,12 @@ const DashboardPage = () => {
             <button onClick={toggleTheme} style={{ ...ghostBtn, padding: '4px 8px', fontSize: '14px' }}>
               {isDark ? '☀️' : '🌙'}
             </button>
+            <button
+              onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'ru' : 'en')}
+              style={{ ...ghostBtn, padding: '4px 8px', fontSize: '12px', fontWeight: 500 }}
+            >
+              {i18n.language === 'en' ? 'RU' : 'EN'}
+            </button>
             <div style={{
               width: '28px', height: '28px', borderRadius: '50%',
               background: 'linear-gradient(135deg, #E52B50, #64A0FF)',
@@ -154,28 +166,6 @@ const DashboardPage = () => {
               <span style={{ color: 'white', fontSize: '11px', fontWeight: 700 }}>{initials}</span>
             </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', overflowX: 'auto', padding: '0 16px', scrollbarWidth: 'none' }}>
-          {TABS.map(({ id, key }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              style={{
-                padding: '8px 12px',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === id ? '2px solid var(--amaranth)' : '2px solid transparent',
-                color: activeTab === id ? 'var(--nav-active-color)' : 'var(--nav-color)',
-                fontSize: '13px',
-                fontWeight: activeTab === id ? 500 : 400,
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              {t(key)}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -276,6 +266,36 @@ const DashboardPage = () => {
           </main>
         </div>
       </div>
+
+      {/* ── Mobile bottom navigation ── */}
+      <nav
+        className="md:hidden"
+        style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
+          display: 'flex', background: 'var(--surface)',
+          borderTop: '0.5px solid var(--border)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        {TABS.map(({ id, key, icon }) => {
+          const isActive = activeTab === id
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: '3px', padding: '8px 2px 7px', background: 'transparent', border: 'none',
+                cursor: 'pointer', outline: 'none',
+                color: isActive ? 'var(--nav-active-color)' : 'var(--nav-color)',
+              }}
+            >
+              <span style={{ fontSize: '19px', lineHeight: 1, opacity: isActive ? 1 : 0.55 }}>{icon}</span>
+              <span style={{ fontSize: '10px', fontWeight: isActive ? 600 : 400, whiteSpace: 'nowrap' }}>{t(key)}</span>
+            </button>
+          )
+        })}
+      </nav>
     </div>
   )
 }

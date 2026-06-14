@@ -14,7 +14,9 @@
     "spendingByCategory": "Spending by Category",
     "noExpenseData": "No expense data this month",
     "monthlyTrend": "6-Month Trend",
-    "noTrendData": "No trend data yet"
+    "noTrendData": "No trend data yet",
+    "addIncome": "Income",
+    "addExpense": "Expense"
   },
   "transactions": {
     "title": "Transactions",

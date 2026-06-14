@@ -16,7 +16,7 @@ const cardVariants = {
   visible: (i) => ({ opacity: 1, y: 0, transition: { duration: 0.4, delay: i * 0.08 } }),
 }
 
-const Overview = () => {
+const Overview = ({ onQuickAdd }) => {
   const { user } = useAuthStore()
   const { t } = useTranslation()
   const currency = user?.currency || 'USD'
@@ -75,6 +75,20 @@ const Overview = () => {
           {formatMoney(balanceCents, currency)}
         </p>
       </motion.div>
+
+      {/* Quick add buttons */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => onQuickAdd?.('income')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '14px', borderRadius: '12px', border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.08)', color: '#059669', fontSize: '14px', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
+        >
+          <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span> {t('overview.addIncome')}
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => onQuickAdd?.('expense')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '14px', borderRadius: '12px', border: '1px solid rgba(229,43,80,0.25)', background: 'rgba(229,43,80,0.08)', color: 'var(--icon-a-color)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
+        >
+          <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span> {t('overview.addExpense')}
+        </motion.button>
+      </div>
 
       {/* Income + Expense stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

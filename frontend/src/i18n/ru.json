@@ -14,7 +14,9 @@
     "spendingByCategory": "Расходы по категориям",
     "noExpenseData": "Нет расходов в этом месяце",
     "monthlyTrend": "Тренд за 6 месяцев",
-    "noTrendData": "Данных пока нет"
+    "noTrendData": "Данных пока нет",
+    "addIncome": "Доход",
+    "addExpense": "Расход"
   },
   "transactions": {
     "title": "Транзакции",
