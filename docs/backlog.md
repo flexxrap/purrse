@@ -28,7 +28,7 @@
 | A-04 | Logout + invalidate session | P0 | 1 | `[x]` | refresh_tokens.revoked=true; cookie cleared |
 | A-05 | Telegram Mini App login | P0 | 5 | `[x]` | initData HMAC verified; user upserted; JWT issued |
 | A-06 | Update email or currency | Should | 2 | `[x]` | Validation; email uniqueness check |
-| A-07 | Delete account + all data | Should | 3 | `[ ]` | Cascade delete; GDPR; Phase 2 |
+| A-07 | Delete account + all data | Should | 3 | `[x]` | Cascade delete; GDPR; Phase 2 |
 | A-08 | Change password | Should | 2 | `[x]` | Old password required; new bcrypt hash |
 
 ---
@@ -59,7 +59,7 @@
 | D-03 | Monthly trend line (last 6 months) | Must | 3 | `[x]` | Income vs expense; hover tooltip |
 | D-04 | Budget planning bar (planned vs actual) | Should | 3 | `[x]` | Per category; red when over; Phase 2 |
 | D-05 | Goals progress bars | Must | 3 | `[x]` | Months to completion from free balance |
-| D-06 | Monthly budget per category + alerts | Should | 5 | `[ ]` | Alert at 80%; Telegram notify; Phase 2 |
+| D-06 | Monthly budget per category + alerts | Should | 5 | `[x]` | Alert at 80%; Telegram notify; Phase 2 |
 
 ---
 
@@ -74,10 +74,10 @@
 | S-05 | HTTPS + HSTS | P0 | 1 | `[x]` | Railway auto-TLS; HSTS header |
 | S-06 | Rate limiting on auth endpoints | P0 | 2 | `[x]` | 60/min per IP; 429 with Retry-After |
 | S-07 | Security headers middleware | P0 | 2 | `[x]` | CSP, X-Frame-Options, etc. |
-| S-08 | Automated DB backups to R2 | Must | 3 | `[ ]` | Daily; verified restore; Phase 2 |
+| S-08 | Automated DB backups to R2 | Must | 3 | `[x]` | Daily; verified restore; Phase 2 |
 | S-09 | Dependabot for Python + npm | Must | 1 | `[x]` | PRs within 24h of new CVE |
 | S-10 | Sentry integration | Must | 2 | `[x]` | Errors in Sentry <30s; p95 tracked |
-| S-11 | GDPR: export + deletion | Should | 3 | `[ ]` | JSON export; deletion <30s; Phase 2 |
+| S-11 | GDPR: export + deletion | Should | 3 | `[x]` | JSON export; deletion <30s; Phase 2 |
 | S-12 | DB connection pooling | Should | 2 | `[x]` | Pool 10; overflow 20; Phase 2 |
 | S-13 | OWASP Top 10 checklist review | Must | 5 | `[x]` | P0/P1 findings fixed before launch |
 
@@ -132,3 +132,7 @@
 - [x] T-07 Full-text search by note (PostgreSQL tsvector GIN, min 3 chars) — Done 2026-06-10
 - [x] T-09 Export to CSV — GET /transactions/export/csv with date filters — Done 2026-06-11
 - [x] D-04 Budget planning bars — budgets table, CRUD + analytics/budget endpoint, Budget tab — Done 2026-06-11
+- [x] S-08 Automated DB backups to R2 — pg_dump daily cron → R2, restore verify job with local postgres — Done 2026-06-10
+- [x] A-07 Delete account + all data — DELETE /user/me cascades transactions/budgets/goals/categories, clears refresh cookie — Done 2026-06-11
+- [x] S-11 GDPR export — GET /user/me/export returns all user data as downloadable JSON — Done 2026-06-11
+- [x] D-06 Budget alerts + Telegram — 80% threshold check on transaction create/update, one alert per budget per month — Done 2026-06-11

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import CheckConstraint, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Index, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -23,6 +23,7 @@ class Budget(Base):
     category_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     month: Mapped[str] = mapped_column(String(7), nullable=False)
     limit_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    alert_80_sent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         nullable=False,
         server_default=func.now(),

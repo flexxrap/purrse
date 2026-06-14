@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -10,6 +11,9 @@ from app.models.budget import Budget
 from app.models.category import Category
 from app.models.transaction import Transaction
 from app.schemas.budget import BudgetBarItem
+from app.services.telegram_service import send_message
+
+logger = logging.getLogger(__name__)
 
 
 async def upsert(
@@ -109,3 +113,62 @@ async def budget_bars(
         ))
 
     return sorted(items, key=lambda x: x.pct, reverse=True)
+
+
+async def check_and_alert(
+    user_id: uuid.UUID,
+    telegram_id: int | None,
+    category_id: uuid.UUID,
+    month: str,
+    db: AsyncSession,
+) -> None:
+    """Send a Telegram alert if spending has crossed 80% of the budget for this category/month."""
+    if telegram_id is None:
+        return
+
+    # Find budget that hasn't already triggered an alert
+    result = await db.execute(
+        select(Budget).where(
+            Budget.user_id == user_id,
+            Budget.category_id == category_id,
+            Budget.month == month,
+            Budget.alert_80_sent.is_(False),
+        )
+    )
+    budget = result.scalar_one_or_none()
+    if budget is None:
+        return
+
+    # Only alert for expense categories
+    cat_result = await db.execute(
+        select(Category).where(Category.id == category_id, Category.user_id == user_id)
+    )
+    cat = cat_result.scalar_one_or_none()
+    if cat is None or cat.type != "expense":
+        return
+
+    year, mon = int(month[:4]), int(month[5:])
+    actual_result = await db.execute(
+        select(func.sum(Transaction.amount_cents)).where(
+            Transaction.user_id == user_id,
+            Transaction.category_id == category_id,
+            Transaction.deleted_at.is_(None),
+            func.extract("year", Transaction.tx_date) == year,
+            func.extract("month", Transaction.tx_date) == mon,
+        )
+    )
+    actual = actual_result.scalar_one_or_none() or 0
+
+    if actual < budget.limit_cents * 0.8:
+        return
+
+    pct = round(actual / budget.limit_cents * 100)
+    budget.alert_80_sent = True
+    db.add(budget)
+    await db.commit()
+
+    await send_message(
+        telegram_id,
+        f"⚠️ Budget alert: {cat.name} — {pct}% used for {month} "
+        f"({actual // 100} / {budget.limit_cents // 100})",
+    )

@@ -18,7 +18,7 @@ from app.schemas.transaction import (
     TransactionOut,
     TransactionUpdate,
 )
-from app.services import transaction_service
+from app.services import budget_service, transaction_service
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ async def create_transaction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await transaction_service.create(
+    tx = await transaction_service.create(
         user_id=current_user.id,
         amount_cents=body.amount_cents,
         category_id=body.category_id,
@@ -76,6 +76,14 @@ async def create_transaction(
         note=body.note,
         db=db,
     )
+    await budget_service.check_and_alert(
+        user_id=current_user.id,
+        telegram_id=current_user.telegram_id,
+        category_id=body.category_id,
+        month=body.tx_date.strftime("%Y-%m"),
+        db=db,
+    )
+    return tx
 
 
 @router.get("", response_model=TransactionList)
@@ -115,7 +123,7 @@ async def update_transaction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await transaction_service.update(
+    tx = await transaction_service.update(
         tx_id=tx_id,
         user_id=current_user.id,
         db=db,
@@ -124,6 +132,14 @@ async def update_transaction(
         tx_date=body.tx_date,
         note=body.note,
     )
+    await budget_service.check_and_alert(
+        user_id=current_user.id,
+        telegram_id=current_user.telegram_id,
+        category_id=tx.category_id,
+        month=tx.tx_date.strftime("%Y-%m"),
+        db=db,
+    )
+    return tx
 
 
 @router.delete("/{tx_id}")

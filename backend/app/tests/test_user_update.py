@@ -169,3 +169,37 @@ async def test_change_password_unauthorized():
         )
 
     assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# A-07: DELETE /user/me
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_delete_account_happy():
+    from app.main import app
+
+    user = _make_user()
+    db = AsyncMock()
+    db.execute = AsyncMock()
+    db.delete = AsyncMock()
+    db.commit = AsyncMock()
+    _override_user_and_db(app, user, db)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
+        resp = await c.delete("/user/me")
+
+    app.dependency_overrides.clear()
+    assert resp.status_code == 204
+    db.delete.assert_called_once_with(user)
+    db.commit.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_delete_account_unauthorized():
+    from app.main import app
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
+        resp = await c.delete("/user/me")
+
+    assert resp.status_code == 401

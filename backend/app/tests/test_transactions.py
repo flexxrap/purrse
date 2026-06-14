@@ -91,8 +91,10 @@ def _clear():
 @pytest.mark.asyncio
 async def test_create_transaction():
     db = AsyncMock()
-    # first execute: category ownership check → found
-    db.execute = AsyncMock(return_value=_scalar_one_or_none(_make_cat()))
+    db.execute = AsyncMock(side_effect=[
+        _scalar_one_or_none(_make_cat()),  # transaction_service: category ownership check
+        _scalar_one_or_none(None),          # check_and_alert: no budget → early return
+    ])
     db.add = MagicMock()
     db.commit = AsyncMock()
     db.refresh = AsyncMock(side_effect=_stamp)
@@ -224,7 +226,10 @@ async def test_list_transactions_unauth():
 async def test_update_transaction():
     tx = _make_tx()
     db = AsyncMock()
-    db.execute = AsyncMock(return_value=_scalar_one_or_none(tx))
+    db.execute = AsyncMock(side_effect=[
+        _scalar_one_or_none(tx),   # transaction_service: tx lookup
+        _scalar_one_or_none(None), # check_and_alert: no budget → early return
+    ])
     db.add = MagicMock()
     db.commit = AsyncMock()
     db.refresh = AsyncMock(side_effect=_stamp)
