@@ -121,6 +121,93 @@ async def test_delete_budget_unauthorized():
 
 
 @pytest.mark.asyncio
+async def test_delete_budget_happy():
+    from app.main import app
+
+    budget = _make_budget()
+    db = AsyncMock()
+    db.get = AsyncMock(return_value=budget)
+    db.delete = AsyncMock()
+    db.commit = AsyncMock()
+    _override(app, _make_user(), db)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
+        resp = await c.delete(f"/budgets/{_BUDGET_ID}")
+
+    app.dependency_overrides.clear()
+    assert resp.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_delete_budget_not_found():
+    from app.main import app
+
+    db = AsyncMock()
+    db.get = AsyncMock(return_value=None)
+    _override(app, _make_user(), db)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
+        resp = await c.delete(f"/budgets/{_BUDGET_ID}")
+
+    app.dependency_overrides.clear()
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_upsert_budget_category_not_found():
+    from app.main import app
+
+    db = AsyncMock()
+    db.get = AsyncMock(return_value=None)
+    _override(app, _make_user(), db)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
+        resp = await c.post("/budgets", json={
+            "category_id": str(_CAT_ID),
+            "month": "2026-06",
+            "limit_cents": 50000,
+        })
+
+    app.dependency_overrides.clear()
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_budget_bars_happy():
+    from app.main import app
+
+    budget = _make_budget()
+    cat = _make_category()
+
+    budget_cat_row = MagicMock()
+    budget_cat_row.Budget = budget
+    budget_cat_row.Category = cat
+
+    actuals_row = MagicMock()
+    actuals_row.category_id = _CAT_ID
+    actuals_row.total = 25000
+
+    first_result = MagicMock()
+    first_result.all.return_value = [budget_cat_row]
+    second_result = MagicMock()
+    second_result.all.return_value = [actuals_row]
+
+    db = AsyncMock()
+    db.execute = AsyncMock(side_effect=[first_result, second_result])
+    _override(app, _make_user(), db)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
+        resp = await c.get("/analytics/budget", params={"month": "2026-06"})
+
+    app.dependency_overrides.clear()
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
+    assert data[0]["limit_cents"] == 50000
+    assert data[0]["actual_cents"] == 25000
+
+
+@pytest.mark.asyncio
 async def test_budget_bars_unauthorized():
     from app.main import app
 

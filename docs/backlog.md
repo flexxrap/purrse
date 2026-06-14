@@ -12,9 +12,9 @@
 - `[ ]` = Todo
 - `[-]` = Skipped / deferred to later phase
 
-**Current focus: Backend Phase 2**
+**Current focus: Phase 3 / frontend deployment**
 
-> ⚠️ Backend Phase 2 stories to revisit: A-06 (update profile), A-07 (delete account), A-08 (change password), T-07 (full-text search), T-09 (CSV export), D-04 (budget bars), D-06 (budget alerts + Telegram notify), S-08 (DB backups), S-11 (GDPR), S-12 (connection pooling)
+> ✅ Phase 2 complete. Remaining: T-08 (CSV import), T-10 (recurring transactions) — Phase 3, low priority.
 
 ---
 
@@ -74,7 +74,7 @@
 | S-05 | HTTPS + HSTS | P0 | 1 | `[x]` | Railway auto-TLS; HSTS header |
 | S-06 | Rate limiting on auth endpoints | P0 | 2 | `[x]` | 60/min per IP; 429 with Retry-After |
 | S-07 | Security headers middleware | P0 | 2 | `[x]` | CSP, X-Frame-Options, etc. |
-| S-08 | Automated DB backups to R2 | Must | 3 | `[x]` | Daily; verified restore; Phase 2 |
+| S-08 | Automated DB backups to R2 | Must | 3 | `[-]` | Deferred — pet project, Railway Pro required for backup access |
 | S-09 | Dependabot for Python + npm | Must | 1 | `[x]` | PRs within 24h of new CVE |
 | S-10 | Sentry integration | Must | 2 | `[x]` | Errors in Sentry <30s; p95 tracked |
 | S-11 | GDPR: export + deletion | Should | 3 | `[x]` | JSON export; deletion <30s; Phase 2 |
@@ -89,8 +89,11 @@
 |-------|---------|--------|
 | Phase 1 MVP | A-01..A-05, T-01..T-06, D-01..D-03, D-05, S-01..S-07, S-09, S-10, S-13 | **Complete** ✅ |
 | Phase F Frontend | React SPA: all 5 tabs, design system, dark mode, i18n EN/RU, Framer Motion | **Complete** ✅ |
-| Phase 2 | A-06..A-08, T-07, T-09, D-04, D-06, S-08, S-11, S-12 | Not started |
-| Phase 3 | T-08, T-10 | Not started |
+| Phase 2 | A-06..A-08, T-07, T-09, D-04, D-06, S-11, S-12 | **Complete** ✅ |
+| Tech Debt | PyJWT migration, integration tests (real Postgres), frontend tests, jti JWT claim | **Complete** ✅ 2026-06-11 |
+| Frontend deploy | Dockerfile + nginx + railway.toml for frontend service | **Complete** ✅ 2026-06-11 |
+| S-08 DB backups | R2 backups | **Deferred** [-] |
+| Phase 3 | T-08 (CSV import), T-10 (recurring transactions) | Not started |
 
 ---
 
@@ -136,3 +139,7 @@
 - [x] A-07 Delete account + all data — DELETE /user/me cascades transactions/budgets/goals/categories, clears refresh cookie — Done 2026-06-11
 - [x] S-11 GDPR export — GET /user/me/export returns all user data as downloadable JSON — Done 2026-06-11
 - [x] D-06 Budget alerts + Telegram — 80% threshold check on transaction create/update, one alert per budget per month — Done 2026-06-11
+- [x] Tech: PyJWT migration (replaced python-jose), jti claim in JWT tokens — Done 2026-06-11
+- [x] Tech: Backend integration tests on real Postgres (12 tests, caught timezone bug in refresh_tokens) — Done 2026-06-11
+- [x] Tech: Frontend unit tests — authStore (6 tests), utils (16 tests), authApi (6 tests) — Done 2026-06-11
+- [x] Tech: Frontend Railway deployment (Dockerfile + nginx SPA + railway.toml) — Done 2026-06-11
