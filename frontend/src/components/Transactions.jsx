@@ -1,12 +1,252 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import transactionsApi from '../api/transactions'
 import budgetsApi from '../api/budgets'
 import categoriesApi from '../api/categories'
+import recurringApi from '../api/recurring'
 import useAuthStore from '../store/authStore'
 import { formatMoney, formatDate, today, firstOfMonth, apiError } from '../utils'
+
+const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(13,10,16,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' }
+const cardStyle = { background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '460px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }
+const inputStyle2 = { width: '100%', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border-card)', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }
+
+const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
+  const [step, setStep] = useState(1)
+  const [file, setFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [mapping, setMapping] = useState({ date_col: 0, amount_col: 1, category_col: null, note_col: null })
+  const [result, setResult] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const fileRef = useRef()
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0] || null)
+    setError('')
+  }
+
+  const handlePreview = async () => {
+    if (!file) { setError('Please select a CSV file'); return }
+    setLoading(true)
+    setError('')
+    try {
+      const data = await transactionsApi.importPreview(file)
+      setPreview(data)
+      setStep(2)
+    } catch (e) {
+      setError(apiError(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleConfirm = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const data = await transactionsApi.importConfirm(file, mapping)
+      setResult(data)
+      setStep(3)
+      onSuccess()
+    } catch (e) {
+      setError(apiError(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const colOptions = (preview?.headers || []).map((h, i) => ({ label: `${i}: ${h}`, value: i }))
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={overlayStyle} onClick={onClose}>
+      <motion.div initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
+        style={cardStyle} onClick={(e) => e.stopPropagation()}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+            {step === 1 ? 'Import CSV — Upload' : step === 2 ? 'Import CSV — Map Columns' : 'Import CSV — Done'}
+          </h3>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {[1, 2, 3].map(s => (
+              <div key={s} style={{ width: '24px', height: '4px', borderRadius: '2px', background: s <= step ? 'var(--amaranth)' : 'var(--border-card)' }} />
+            ))}
+          </div>
+        </div>
+
+        {step === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+              Select a CSV file (max 5 MB). First row must be headers.
+            </p>
+            <div
+              style={{ border: '2px dashed var(--border-card)', borderRadius: '12px', padding: '32px 16px', textAlign: 'center', cursor: 'pointer' }}
+              onClick={() => fileRef.current?.click()}
+            >
+              <input ref={fileRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleFileChange} />
+              {file
+                ? <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{file.name}</span>
+                : <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Click to choose a .csv file</span>
+              }
+            </div>
+            {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <motion.div whileTap={{ scale: 0.97 }} onClick={onClose}
+                style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}>
+                Cancel
+              </motion.div>
+              <motion.div whileTap={{ scale: 0.97 }} onClick={loading ? undefined : handlePreview}
+                style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: loading ? 0.7 : 1, userSelect: 'none' }}>
+                {loading ? 'Loading…' : 'Next →'}
+              </motion.div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && preview && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+              Found <strong>{preview.total_rows}</strong> data rows. Map columns:
+            </p>
+            {[
+              { label: 'Date column *', key: 'date_col', required: true },
+              { label: 'Amount column *', key: 'amount_col', required: true },
+              { label: 'Category column', key: 'category_col', required: false },
+              { label: 'Note column', key: 'note_col', required: false },
+            ].map(({ label, key, required }) => (
+              <div key={key}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{label}</label>
+                <select
+                  value={mapping[key] === null ? '' : mapping[key]}
+                  onChange={(e) => setMapping(m => ({ ...m, [key]: e.target.value === '' ? null : parseInt(e.target.value, 10) }))}
+                  style={inputStyle2}
+                >
+                  {!required && <option value="">— skip —</option>}
+                  {colOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            ))}
+            {preview.rows.length > 0 && (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse', color: 'var(--text-secondary)' }}>
+                  <thead>
+                    <tr>{preview.headers.map((h, i) => <th key={i} style={{ padding: '4px 8px', borderBottom: '1px solid var(--border-card)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {preview.rows.slice(0, 3).map((row, ri) => (
+                      <tr key={ri}>{row.map((cell, ci) => <td key={ci} style={{ padding: '4px 8px', borderBottom: '1px solid var(--tx-border)', whiteSpace: 'nowrap', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cell}</td>)}</tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <motion.div whileTap={{ scale: 0.97 }} onClick={() => { setStep(1); setError('') }}
+                style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}>
+                ← Back
+              </motion.div>
+              <motion.div whileTap={{ scale: 0.97 }} onClick={loading ? undefined : handleConfirm}
+                style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: loading ? 0.7 : 1, userSelect: 'none' }}>
+                {loading ? 'Importing…' : 'Import'}
+              </motion.div>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && result && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '36px' }}>✓</div>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Import complete!</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+              <strong>{result.created}</strong> transactions created, <strong>{result.skipped}</strong> rows skipped.
+            </p>
+            <motion.div whileTap={{ scale: 0.97 }} onClick={onClose}
+              style={{ borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: 'pointer', background: 'var(--amaranth-btn)', color: 'white', userSelect: 'none' }}>
+              Close
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  )
+}
+
+const RecurringModal = ({ onClose, onSuccess }) => {
+  const [amount, setAmount] = useState('')
+  const [frequency, setFrequency] = useState('monthly')
+  const [startDate, setStartDate] = useState(today())
+  const [note, setNote] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSave = async () => {
+    const amountCents = Math.round(parseFloat(amount) * 100)
+    if (!amountCents || amountCents <= 0 || !startDate) {
+      setError('Amount and start date are required')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      await recurringApi.create({ amount_cents: amountCents, frequency, start_date: startDate, note: note.trim() || null })
+      onSuccess()
+      onClose()
+    } catch (e) {
+      setError(apiError(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={overlayStyle} onClick={onClose}>
+      <motion.div initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
+        style={{ ...cardStyle, maxWidth: '380px' }} onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>New Recurring Transaction</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Amount</label>
+            <input type="number" step="0.01" min="0.01" value={amount} onChange={e => setAmount(e.target.value)} style={inputStyle2} placeholder="0.00" autoFocus />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Frequency</label>
+            <select value={frequency} onChange={e => setFrequency(e.target.value)} style={inputStyle2}>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Start Date</label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle2} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Note <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
+            <input type="text" value={note} onChange={e => setNote(e.target.value)} style={inputStyle2} placeholder="e.g. Rent" maxLength={500} />
+          </div>
+          {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
+        </div>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+          <motion.div whileTap={{ scale: 0.97 }} onClick={onClose}
+            style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}>
+            Cancel
+          </motion.div>
+          <motion.div whileTap={{ scale: 0.97 }} onClick={loading ? undefined : handleSave}
+            style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: loading ? 0.7 : 1, userSelect: 'none' }}>
+            {loading ? 'Saving…' : 'Save'}
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
 
 const TransactionModal = ({ transaction, categories, onSave, onClose, loading, error }) => {
   const { t } = useTranslation()
@@ -94,9 +334,19 @@ const Transactions = () => {
   const [filters, setFilters] = useState({ date_from: firstOfMonth(), date_to: today(), category_id: '', type: '', search: '' })
   const [modal, setModal] = useState(null)
   const [mutError, setMutError] = useState('')
+  const [showImport, setShowImport] = useState(false)
+  const [showRecurringModal, setShowRecurringModal] = useState(false)
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list })
   const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c]))
+
+  const { data: recurringList = [], refetch: refetchRecurring } = useQuery({ queryKey: ['recurring'], queryFn: recurringApi.list })
+  const queryClient = useQueryClient()
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['transactions'] })
+    queryClient.invalidateQueries({ queryKey: ['recurring'] })
+  }
+  const deleteRecurringMutation = useMutation({ mutationFn: recurringApi.remove, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring'] }) })
 
   const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
     queryKey: ['transactions', filters],
@@ -111,7 +361,6 @@ const Transactions = () => {
   })
 
   const allItems = data?.pages.flatMap((p) => p.items) || []
-  const queryClient = useQueryClient()
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
 
   const createMutation = useMutation({ mutationFn: transactionsApi.create, onSuccess: () => { invalidate(); setModal(null); setMutError('') }, onError: (err) => setMutError(apiError(err)) })
@@ -139,6 +388,13 @@ const Transactions = () => {
           >
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             CSV
+          </motion.div>
+          <motion.div whileTap={{ scale: 0.96 }}
+            onClick={() => setShowImport(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface)', border: '0.5px solid var(--border-card)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500, padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none' }}
+          >
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4 4l4-4m0 0l4 4m-4-4V4" /></svg>
+            Import
           </motion.div>
           <motion.div whileTap={{ scale: 0.96 }} onClick={() => { setMutError(''); setModal({ tx: null }) }}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--amaranth-btn)', color: 'white', fontSize: '13px', fontWeight: 500, padding: '8px 14px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none' }}
@@ -269,12 +525,60 @@ const Transactions = () => {
         </div>
       )}
 
+      {/* Recurring section */}
+      <div style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '14px', padding: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Recurring Transactions</h3>
+          <motion.div whileTap={{ scale: 0.96 }} onClick={() => setShowRecurringModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--amaranth-btn)', color: 'white', fontSize: '12px', fontWeight: 500, padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', userSelect: 'none' }}>
+            <span style={{ fontSize: '14px', lineHeight: 1 }}>+</span> Add
+          </motion.div>
+        </div>
+        {recurringList.length === 0 ? (
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>No recurring transactions yet.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {recurringList.map((rt) => (
+              <div key={rt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg)', borderRadius: '10px', border: '1px solid var(--border-card)', opacity: rt.is_active ? 1 : 0.5 }}>
+                <div>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{formatMoney(rt.amount_cents, currency)}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>{rt.frequency}</span>
+                  {rt.note && <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>— {rt.note}</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>next: {rt.next_date}</span>
+                  <button
+                    style={{ width: '24px', height: '24px', borderRadius: '6px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                    onClick={() => deleteRecurringMutation.mutate(rt.id)}
+                  >
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <AnimatePresence>
         {modal !== null && (
           <TransactionModal
             transaction={modal.tx} categories={categories}
             onSave={handleSave} onClose={() => setModal(null)}
             loading={isMutating} error={mutError}
+          />
+        )}
+        {showImport && (
+          <ImportCsvModal
+            categories={categories}
+            onClose={() => setShowImport(false)}
+            onSuccess={invalidate}
+          />
+        )}
+        {showRecurringModal && (
+          <RecurringModal
+            onClose={() => setShowRecurringModal(false)}
+            onSuccess={() => queryClient.invalidateQueries({ queryKey: ['recurring'] })}
           />
         )}
       </AnimatePresence>

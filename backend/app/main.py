@@ -1,6 +1,8 @@
 import logging
+from contextlib import asynccontextmanager
 
 import sentry_sdk
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,7 +10,9 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
+from app.database import AsyncSessionLocal
 from app.limiter import limiter
+from app.services import recurring_service
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +20,24 @@ _dsn = settings.SENTRY_DSN
 if _dsn and _dsn.startswith("https://") and "/" in _dsn.split("@")[-1]:
     sentry_sdk.init(dsn=_dsn, traces_sample_rate=0.2)
 
-app = FastAPI(title="Budget App API", version="0.1.0")
+scheduler = AsyncIOScheduler()
+
+
+async def _run_recurring():
+    async with AsyncSessionLocal() as db:
+        await recurring_service.process_due(db)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await _run_recurring()
+    scheduler.add_job(_run_recurring, "cron", hour=0, minute=5)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(title="Budget App API", version="0.1.0", lifespan=lifespan)
 
 # Rate limiter
 app.state.limiter = limiter
@@ -55,6 +76,7 @@ from app.routers import (  # noqa: E402
     budgets,
     categories,
     goals,
+    recurring,
     transactions,
     user,
 )
@@ -66,6 +88,7 @@ app.include_router(transactions.router)
 app.include_router(goals.router)
 app.include_router(analytics.router)
 app.include_router(budgets.router)
+app.include_router(recurring.router)
 
 
 @app.get("/health", tags=["health"])

@@ -119,6 +119,15 @@
     "saveError": "Failed to save",
     "export": "Export CSV"
   },
+  "onboarding": {
+    "title": "Welcome to purrse!",
+    "subtitle": "Your smart personal finance tracker",
+    "step1": "Track income and expenses by category",
+    "step2": "Start by creating your first category",
+    "step3": "Set goals and budgets to stay on track",
+    "cta": "Create first category →",
+    "skip": "Skip for now"
+  },
   "auth": {
     "tagline": "Track your finances smartly",
     "signIn": "Sign In",

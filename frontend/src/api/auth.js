@@ -34,6 +34,11 @@ const authApi = {
     const { data } = await client.post('/auth/refresh')
     return data
   },
+
+  telegramLogin: async (initData) => {
+    const { data } = await client.post('/auth/telegram', { init_data: initData })
+    return data
+  },
 }
 
 export default authApi

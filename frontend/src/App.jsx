@@ -21,12 +21,25 @@ const App = () => {
   }, [theme])
 
   useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    const initData = tg?.initData
+
+    if (initData) {
+      tg.ready()
+      tg.expand()
+    }
+
     authApi
       .refresh()
-      .then(({ access_token }) =>
-        authApi.getMe().then((user) => setAuth(access_token, user))
-      )
-      .catch(() => {})
+      .then(({ access_token }) => authApi.getMe().then((user) => setAuth(access_token, user)))
+      .catch(() => {
+        if (initData) {
+          return authApi
+            .telegramLogin(initData)
+            .then(({ access_token, user }) => setAuth(access_token, user))
+            .catch(() => {})
+        }
+      })
       .finally(() => setInitialized())
   // setAuth and setInitialized are stable Zustand setters — safe to omit
   // eslint-disable-next-line react-hooks/exhaustive-deps

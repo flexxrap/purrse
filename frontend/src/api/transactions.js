@@ -23,6 +23,18 @@ const transactionsApi = {
     const { data } = await client.delete(`/transactions/${id}`)
     return data
   },
+
+  importPreview: (file) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return client.post('/transactions/import/preview', fd).then(r => r.data)
+  },
+  importConfirm: (file, mapping) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('mapping', JSON.stringify(mapping))
+    return client.post('/transactions/import/confirm', fd).then(r => r.data)
+  },
 }
 
 export default transactionsApi

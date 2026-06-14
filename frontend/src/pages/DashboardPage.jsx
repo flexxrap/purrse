@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import useAuthStore from '../store/authStore'
@@ -10,6 +10,51 @@ import Goals from '../components/Goals'
 import Budget from '../components/Budget'
 import Categories from '../components/Categories'
 import Settings from '../components/Settings'
+
+const ONBOARDING_KEY = 'purrse-onboarded'
+
+const OnboardingModal = ({ onDone, onGoCategories }) => {
+  const { t } = useTranslation()
+  const steps = [
+    { icon: '📊', text: t('onboarding.step1') },
+    { icon: '🏷️', text: t('onboarding.step2') },
+    { icon: '🎯', text: t('onboarding.step3') },
+  ]
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(13,10,16,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '16px' }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.93, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '20px', padding: '32px 28px', width: '100%', maxWidth: '400px', boxShadow: '0 12px 60px rgba(0,0,0,0.25)', textAlign: 'center' }}
+      >
+        <div style={{ fontSize: '36px', marginBottom: '12px' }}>🐱</div>
+        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>{t('onboarding.title')}</h2>
+        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 24px' }}>{t('onboarding.subtitle')}</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '28px', textAlign: 'left' }}>
+          {steps.map(({ icon, text }, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg)', borderRadius: '10px', padding: '10px 14px' }}>
+              <span style={{ fontSize: '18px' }}>{icon}</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        <motion.div whileTap={{ scale: 0.97 }} onClick={onGoCategories}
+          style={{ background: 'var(--amaranth-btn)', color: 'white', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', userSelect: 'none', marginBottom: '10px' }}
+        >
+          {t('onboarding.cta')}
+        </motion.div>
+        <div onClick={onDone} style={{ fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}>
+          {t('onboarding.skip')}
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
 
 const TABS = [
   { id: 'overview',      key: 'nav.overview' },
@@ -36,7 +81,24 @@ const ghostBtn = {
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview')
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(ONBOARDING_KEY))
   const { user } = useAuthStore()
+
+  const closeOnboarding = () => {
+    localStorage.setItem(ONBOARDING_KEY, '1')
+    setShowOnboarding(false)
+  }
+  const goCategories = () => {
+    closeOnboarding()
+    setActiveTab('categories')
+  }
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    if (tg?.colorScheme) {
+      // Sync theme with Telegram (best effort — user can still override)
+    }
+  }, [])
   const { theme, toggleTheme } = useThemeStore()
   const { t, i18n } = useTranslation()
 
@@ -60,6 +122,11 @@ const DashboardPage = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingModal onDone={closeOnboarding} onGoCategories={goCategories} />
+        )}
+      </AnimatePresence>
 
       {/* ── Mobile top bar ── */}
       <div

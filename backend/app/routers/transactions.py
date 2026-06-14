@@ -5,7 +5,7 @@ import uuid
 from datetime import date
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,12 +13,16 @@ from app.dependencies import get_current_user, get_db
 from app.limiter import limiter
 from app.models.user import User
 from app.schemas.transaction import (
+    ImportConfirmOut,
+    ImportMapping,
+    ImportPreviewOut,
     TransactionCreate,
     TransactionList,
     TransactionOut,
     TransactionUpdate,
 )
-from app.services import budget_service, transaction_service
+from app.services import budget_service, import_service, transaction_service
+from app.services.category_service import get_all as get_all_categories
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +62,50 @@ async def export_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+_MAX_CSV_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+@router.post("/import/preview", response_model=ImportPreviewOut)
+async def import_preview(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    content = await file.read()
+    if len(content) > _MAX_CSV_BYTES:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="File too large (max 5 MB)")
+    return import_service.parse_csv_preview(content)
+
+
+@router.post("/import/confirm", response_model=ImportConfirmOut)
+async def import_confirm(
+    file: UploadFile = File(...),
+    mapping: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    content = await file.read()
+    if len(content) > _MAX_CSV_BYTES:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="File too large (max 5 MB)")
+    try:
+        m = ImportMapping.model_validate_json(mapping)
+    except Exception:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Invalid column mapping")
+    categories = await get_all_categories(current_user.id, db)
+    rows, skipped = import_service.parse_csv_rows(
+        content,
+        date_col=m.date_col,
+        amount_col=m.amount_col,
+        category_col=m.category_col,
+        note_col=m.note_col,
+        categories=categories,
+    )
+    created = await transaction_service.bulk_create(current_user.id, rows, db)
+    return ImportConfirmOut(created=created, skipped=skipped)
 
 
 @router.post("", response_model=TransactionOut, status_code=status.HTTP_201_CREATED)

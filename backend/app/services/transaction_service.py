@@ -171,6 +171,30 @@ async def export_all(
     return result.all()
 
 
+async def bulk_create(
+    user_id: uuid.UUID,
+    rows: list[dict],
+    db: AsyncSession,
+) -> int:
+    """Create multiple transactions without category validation. Returns count created."""
+    now = datetime.now(timezone.utc)
+    objs = [
+        Transaction(
+            user_id=user_id,
+            category_id=r["category_id"],
+            amount_cents=r["amount_cents"],
+            tx_date=r["tx_date"],
+            note=r["note"],
+            created_at=now,
+            updated_at=now,
+        )
+        for r in rows
+    ]
+    db.add_all(objs)
+    await db.commit()
+    return len(objs)
+
+
 async def soft_delete(
     tx_id: uuid.UUID,
     user_id: uuid.UUID,

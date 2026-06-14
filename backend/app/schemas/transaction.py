@@ -34,3 +34,21 @@ class TransactionOut(BaseModel):
 class TransactionList(BaseModel):
     items: list[TransactionOut]
     next_cursor: uuid.UUID | None
+
+
+class ImportPreviewOut(BaseModel):
+    headers: list[str]
+    rows: list[list[str]]
+    total_rows: int
+
+
+class ImportMapping(BaseModel):
+    date_col: int = Field(ge=0)
+    amount_col: int = Field(ge=0)
+    category_col: int | None = None
+    note_col: int | None = None
+
+
+class ImportConfirmOut(BaseModel):
+    created: int
+    skipped: int
