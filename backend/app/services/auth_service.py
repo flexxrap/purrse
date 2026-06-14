@@ -7,9 +7,9 @@ import time
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, unquote
 
+import bcrypt as _bcrypt
 from fastapi import HTTPException, Request, status
 from jose import jwt
-import bcrypt as _bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
