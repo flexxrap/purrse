@@ -1,10 +1,11 @@
 import logging
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
+from app.limiter import limiter
 from app.models.user import User
 from app.schemas.goal import GoalCreate, GoalOut, GoalUpdate
 from app.services import goal_service
@@ -15,7 +16,9 @@ router = APIRouter(prefix="/goals", tags=["goals"])
 
 
 @router.get("", response_model=list[GoalOut])
+@limiter.limit("300/minute")
 async def list_goals(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -23,8 +26,10 @@ async def list_goals(
 
 
 @router.post("", response_model=GoalOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("300/minute")
 async def create_goal(
     body: GoalCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -39,9 +44,11 @@ async def create_goal(
 
 
 @router.patch("/{goal_id}", response_model=GoalOut)
+@limiter.limit("300/minute")
 async def update_goal(
     goal_id: uuid.UUID,
     body: GoalUpdate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -57,8 +64,10 @@ async def update_goal(
 
 
 @router.delete("/{goal_id}")
+@limiter.limit("300/minute")
 async def delete_goal(
     goal_id: uuid.UUID,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

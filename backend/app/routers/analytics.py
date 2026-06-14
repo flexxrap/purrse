@@ -1,10 +1,11 @@
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
+from app.limiter import limiter
 from app.models.user import User
 from app.services import analytics_service
 
@@ -31,7 +32,9 @@ def _parse_month(month_str: str | None) -> tuple[int, int]:
 
 
 @router.get("/summary")
+@limiter.limit("300/minute")
 async def get_summary(
+    request: Request,
     month: str | None = Query(None, description="YYYY-MM, default current month"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -43,7 +46,9 @@ async def get_summary(
 
 
 @router.get("/categories")
+@limiter.limit("300/minute")
 async def get_category_breakdown(
+    request: Request,
     month: str | None = Query(None, description="YYYY-MM, default current month"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -55,7 +60,9 @@ async def get_category_breakdown(
 
 
 @router.get("/trend")
+@limiter.limit("300/minute")
 async def get_trend(
+    request: Request,
     months: int = Query(6, ge=1, le=24),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

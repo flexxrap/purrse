@@ -3,10 +3,11 @@ import uuid
 from datetime import date
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
+from app.limiter import limiter
 from app.models.user import User
 from app.schemas.transaction import (
     TransactionCreate,
@@ -22,8 +23,10 @@ router = APIRouter(prefix="/transactions", tags=["transactions"])
 
 
 @router.post("", response_model=TransactionOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("300/minute")
 async def create_transaction(
     body: TransactionCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -38,7 +41,9 @@ async def create_transaction(
 
 
 @router.get("", response_model=TransactionList)
+@limiter.limit("300/minute")
 async def list_transactions(
+    request: Request,
     date_from: date | None = Query(None),
     date_to: date | None = Query(None),
     category_id: uuid.UUID | None = Query(None),
@@ -62,9 +67,11 @@ async def list_transactions(
 
 
 @router.patch("/{tx_id}", response_model=TransactionOut)
+@limiter.limit("300/minute")
 async def update_transaction(
     tx_id: uuid.UUID,
     body: TransactionUpdate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -80,8 +87,10 @@ async def update_transaction(
 
 
 @router.delete("/{tx_id}")
+@limiter.limit("300/minute")
 async def delete_transaction(
     tx_id: uuid.UUID,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

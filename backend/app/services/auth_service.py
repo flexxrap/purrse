@@ -1,7 +1,11 @@
 import hashlib
+import hmac
+import json
 import logging
 import secrets
+import time
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, unquote
 
 from fastapi import HTTPException, Request, status
 from jose import jwt
@@ -164,6 +168,67 @@ async def logout(
 
     await _write_audit(db, "logout", user_id, request)
     await db.commit()
+
+
+def verify_telegram_init_data(init_data: str, bot_token: str) -> dict:
+    """
+    Verifies Telegram WebApp initData HMAC-SHA256 signature.
+    Raises ValueError on invalid hash or expired auth_date (>86400s).
+    Returns the parsed user dict from initData.
+    """
+    parsed = dict(parse_qs(init_data, keep_blank_values=True))
+    received_hash = parsed.pop("hash", [None])[0]
+    if not received_hash:
+        raise ValueError("No hash in initData")
+
+    auth_date = int(parsed.get("auth_date", [0])[0])
+    if time.time() - auth_date > 86400:
+        raise ValueError("initData expired")
+
+    data_check_string = "\n".join(
+        f"{k}={unquote(v[0])}"
+        for k, v in sorted(parsed.items())
+    )
+    secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+    expected = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
+    if not hmac.compare_digest(expected, received_hash):
+        raise ValueError("Invalid hash")
+
+    return json.loads(unquote(parsed["user"][0]))
+
+
+async def telegram_login(
+    init_data: str,
+    db: AsyncSession,
+    request: Request,
+) -> tuple[User, str, str]:
+    """
+    Verifies Telegram initData, upserts user by telegram_id, issues tokens.
+    Returns (user, access_token, raw_refresh_token).
+    Raises HTTP 400 on invalid or expired initData.
+    """
+    try:
+        tg_user = verify_telegram_init_data(init_data, settings.BOT_TOKEN)
+    except ValueError as exc:
+        detail = "initData expired" if "expired" in str(exc) else "Invalid initData"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
+    telegram_id: int = int(tg_user["id"])
+
+    result = await db.execute(select(User).where(User.telegram_id == telegram_id))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        user = User(telegram_id=telegram_id)
+        db.add(user)
+        await db.flush()
+
+    access_token, raw_token = await _issue_tokens(user, db)
+    await _write_audit(db, "telegram_login", str(user.id), request)
+    await db.commit()
+    await db.refresh(user)
+    return user, access_token, raw_token
 
 
 async def register(

@@ -1,9 +1,11 @@
 import logging
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
+from app.limiter import limiter
 from app.models.user import User
 from app.schemas.user import LoginRequest, RegisterRequest, TokenResponse
 from app.services.auth_service import (
@@ -12,6 +14,7 @@ from app.services.auth_service import (
     logout,
     refresh_session,
     register,
+    telegram_login,
 )
 
 logger = logging.getLogger(__name__)
@@ -19,6 +22,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 _REFRESH_COOKIE_MAX_AGE = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+
+
+class TelegramAuthRequest(BaseModel):
+    init_data: str
 
 
 def _set_refresh_cookie(response: Response, raw_token: str) -> None:
@@ -38,6 +45,7 @@ def _clear_refresh_cookie(response: Response) -> None:
 
 
 @router.post("/register", response_model=TokenResponse)
+@limiter.limit("60/minute")
 async def register_user(
     body: RegisterRequest,
     request: Request,
@@ -55,6 +63,7 @@ async def register_user(
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("60/minute")
 async def login_user(
     body: LoginRequest,
     request: Request,
@@ -64,6 +73,23 @@ async def login_user(
     user, access_token, raw_refresh = await login(
         email=body.email,
         password=body.password,
+        db=db,
+        request=request,
+    )
+    _set_refresh_cookie(response, raw_refresh)
+    return TokenResponse(access_token=access_token, user=user)
+
+
+@router.post("/telegram", response_model=TokenResponse)
+@limiter.limit("60/minute")
+async def telegram_auth(
+    body: TelegramAuthRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    user, access_token, raw_refresh = await telegram_login(
+        init_data=body.init_data,
         db=db,
         request=request,
     )
