@@ -338,13 +338,13 @@ Run through this before public launch (story S-13).
 
 | # | Risk | Our control | Verified? |
 |---|------|-------------|-----------|
-| A01 | Broken Access Control | All queries filter by user_id from JWT | `[ ]` |
-| A02 | Cryptographic Failures | bcrypt for passwords; HTTPS; httpOnly cookies | `[ ]` |
-| A03 | Injection | SQLAlchemy ORM; Pydantic validation; no raw SQL | `[ ]` |
-| A04 | Insecure Design | Cursor pagination; soft delete; rate limiting | `[ ]` |
-| A05 | Security Misconfiguration | Security headers middleware; CORS whitelist | `[ ]` |
-| A06 | Vulnerable Components | Dependabot + Trivy | `[ ]` |
-| A07 | Auth Failures | JWT rotation; rate limit on auth; audit log | `[ ]` |
-| A08 | Data Integrity | Pydantic on all inputs; Telegram HMAC verify | `[ ]` |
-| A09 | Logging Failures | Sentry + audit_log table + structured logging | `[ ]` |
-| A10 | SSRF | No outbound HTTP from user input; whitelist external calls | `[ ]` |
+| A01 | Broken Access Control | All queries filter by user_id from JWT | `[x]` |
+| A02 | Cryptographic Failures | bcrypt for passwords; HTTPS; httpOnly cookies | `[x]` |
+| A03 | Injection | SQLAlchemy ORM; Pydantic validation; no raw SQL | `[x]` |
+| A04 | Insecure Design | Cursor pagination; soft delete; rate limiting | `[x]` |
+| A05 | Security Misconfiguration | Security headers middleware; CORS whitelist | `[x]` |
+| A06 | Vulnerable Components | Dependabot + Trivy | `[x]` |
+| A07 | Auth Failures | JWT rotation; rate limit on auth; audit log | `[x]` |
+| A08 | Data Integrity | Pydantic on all inputs; Telegram HMAC verify | `[x]` |
+| A09 | Logging Failures | Sentry + audit_log table + structured logging | `[x]` |
+| A10 | SSRF | No outbound HTTP from user input; whitelist external calls | `[x]` |

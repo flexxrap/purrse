@@ -77,7 +77,7 @@
 | S-10 | Sentry integration | Must | 2 | `[x]` | Errors in Sentry <30s; p95 tracked |
 | S-11 | GDPR: export + deletion | Should | 3 | `[ ]` | JSON export; deletion <30s; Phase 2 |
 | S-12 | DB connection pooling | Should | 2 | `[ ]` | Pool 10; overflow 20; Phase 2 |
-| S-13 | OWASP Top 10 checklist review | Must | 5 | `[ ]` | P0/P1 findings fixed before launch |
+| S-13 | OWASP Top 10 checklist review | Must | 5 | `[x]` | P0/P1 findings fixed before launch |
 
 ---
 
