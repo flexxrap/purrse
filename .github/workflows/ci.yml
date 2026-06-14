@@ -58,6 +58,7 @@ jobs:
           image-ref: budget-app:ci
           exit-code: "1"
           severity: CRITICAL
+          trivyignore-file: backend/.trivyignore
 
   deploy:
     runs-on: ubuntu-latest

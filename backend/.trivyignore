@@ -1,0 +1,4 @@
+# perl-base CVEs in python:3.12-slim base image — no fix available upstream
+# fix_deferred / affected status; reviewed 2026-06-10
+CVE-2026-42496
+CVE-2026-8376
