@@ -21,6 +21,7 @@ if database_url:
 from app.database import Base  # noqa: E402
 import app.models.audit_log  # noqa: E402, F401
 import app.models.category  # noqa: E402, F401
+import app.models.goal  # noqa: E402, F401
 import app.models.refresh_token  # noqa: E402, F401
 import app.models.transaction  # noqa: E402, F401
 import app.models.user  # noqa: E402, F401
