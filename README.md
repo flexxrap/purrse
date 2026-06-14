@@ -1,5 +1,10 @@
 # 🐱 purrse — personal finance tracker
 
+[![CI](https://github.com/flexxrap/purrse/actions/workflows/ci.yml/badge.svg)](https://github.com/flexxrap/purrse/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Telegram Mini App](https://img.shields.io/badge/Telegram-Mini%20App-26A5E4?logo=telegram&logoColor=white)](https://t.me/simple_budget_app_bot/purrse)
+
 > Track income and expenses by category, set savings goals, and plan monthly budgets.
 > Available as a web app and Telegram Mini App.
 
