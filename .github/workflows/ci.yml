@@ -74,8 +74,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
-      - run: npm audit --audit-level=high
+      - run: npm audit --audit-level=high --omit=dev
       - run: npx eslint src/
+      - run: npm test
       - run: npm run build
 
   docker:

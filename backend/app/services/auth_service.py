@@ -4,12 +4,13 @@ import json
 import logging
 import secrets
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, unquote
 
 import bcrypt as _bcrypt
+import jwt
 from fastapi import HTTPException, Request, status
-from jose import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,7 +36,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(
-        {"sub": user_id, "exp": expire},
+        {"sub": user_id, "exp": expire, "jti": uuid.uuid4().hex},
         settings.JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
