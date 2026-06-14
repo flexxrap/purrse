@@ -1,16 +1,34 @@
 export function Logo({ size = 28, dark = false }) {
-  const color = dark ? '#FF6B84' : '#E52B50'
-  const inner = dark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.2)'
+  const c = dark ? '#FF6B84' : '#E52B50'
   return (
-    <svg width={size} height={size} viewBox="0 0 38 38" fill="none">
-      <path d="M4 11 L4 4 L14 11 Z" fill={color}/>
-      <path d="M34 11 L34 4 L24 11 Z" fill={color}/>
-      <path d="M5.5 10 L5.5 6 L12 10 Z" fill={inner}/>
-      <path d="M32.5 10 L32.5 6 L26 10 Z" fill={inner}/>
-      <rect x="3" y="10" width="32" height="25" rx="7" fill={color}/>
-      <rect x="13" y="10" width="12" height="2.5" rx="1.25" fill="rgba(255,255,255,0.25)"/>
-      <line x1="19" y1="17" x2="19" y2="30" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M15.5 20 C15.5 18 19 17.5 19 17.5 C22.5 17.5 22.5 20 22.5 21 C22.5 23.5 19 23.5 19 23.5 C15.5 23.5 15.5 26 15.5 27 C15.5 29 19 29.5 19 29.5 C22.5 29.5 22.5 27 22.5 27" stroke="white" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Left ear */}
+      <path d="M23 43 L19 17 L44 34 Z" fill={c}/>
+      {/* Right ear */}
+      <path d="M77 43 L81 17 L56 34 Z" fill={c}/>
+
+      {/* Body */}
+      <ellipse cx="50" cy="64" rx="31" ry="27" fill={c}/>
+
+      {/* Head */}
+      <circle cx="50" cy="44" r="24" fill={c}/>
+
+      {/* Tail */}
+      <path d="M76 76 Q93 66 88 85" stroke={c} strokeWidth="9" strokeLinecap="round" fill="none"/>
+
+      {/* Shine */}
+      <path d="M67 33 Q80 45 75 60" stroke="rgba(255,255,255,0.22)" strokeWidth="5" strokeLinecap="round"/>
+
+      {/* Paw bumps */}
+      <ellipse cx="37" cy="88" rx="10" ry="6" fill={c}/>
+      <ellipse cx="56" cy="90" rx="10" ry="6" fill={c}/>
+
+      {/* Eyes */}
+      <circle cx="41" cy="41" r="7" fill="white"/>
+      <circle cx="59" cy="41" r="7" fill="white"/>
+
+      {/* Nose */}
+      <path d="M50 50 L47 55 L53 55 Z" fill="rgba(255,255,255,0.75)"/>
     </svg>
   )
 }
