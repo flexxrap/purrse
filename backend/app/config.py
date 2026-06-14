@@ -10,8 +10,9 @@ class Settings(BaseSettings):
     BOT_TOKEN: str
     FRONTEND_URL: str
     SENTRY_DSN: str = ""
+    # Comma-separated extra hosts to allow (e.g. Railway backend domain)
+    EXTRA_ALLOWED_HOSTS: str = ""
 
-    # Derived from FRONTEND_URL; override via env if needed
     @property
     def ALLOWED_ORIGINS(self) -> list[str]:
         return [self.FRONTEND_URL]
@@ -19,7 +20,10 @@ class Settings(BaseSettings):
     @property
     def ALLOWED_HOSTS(self) -> list[str]:
         host = self.FRONTEND_URL.removeprefix("https://").removeprefix("http://")
-        return [host, f"*.{host}", "localhost", "127.0.0.1"]
+        hosts = [host, f"*.{host}", "localhost", "127.0.0.1"]
+        if self.EXTRA_ALLOWED_HOSTS:
+            hosts += [h.strip() for h in self.EXTRA_ALLOWED_HOSTS.split(",") if h.strip()]
+        return hosts
 
 
 settings = Settings()
