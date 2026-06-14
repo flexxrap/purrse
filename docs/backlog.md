@@ -85,7 +85,7 @@
 
 | Phase | Stories | Status |
 |-------|---------|--------|
-| Phase 1 MVP | A-01..A-05, T-01..T-06, D-01..D-03, D-05, S-01..S-07, S-09, S-10, S-13 | Not started |
+| Phase 1 MVP | A-01..A-05, T-01..T-06, D-01..D-03, D-05, S-01..S-07, S-09, S-10, S-13 | **Complete** ✅ |
 | Phase 2 | A-06..A-08, T-07, T-09, D-04, D-06, S-08, S-11, S-12 | Not started |
 | Phase 3 | T-08, T-10 | Not started |
 
@@ -93,6 +93,28 @@
 
 ## Completed stories log
 
-<!-- Move stories here when done, with date -->
-<!-- Example: -->
-<!-- - [x] A-01 Register — Done 2025-06-15 -->
+- [x] A-01 Register with email + password — Done 2026-06-05
+- [x] A-02 Login → JWT + refresh cookie — Done 2026-06-05
+- [x] A-03 Refresh session silently — Done 2026-06-05
+- [x] A-04 Logout + invalidate session — Done 2026-06-05
+- [x] A-05 Telegram Mini App login — Done 2026-06-05
+- [x] T-01 Add transaction — Done 2026-06-05
+- [x] T-02 List transactions (paginated) — Done 2026-06-05
+- [x] T-03 Edit transaction — Done 2026-06-05
+- [x] T-04 Delete transaction (soft) — Done 2026-06-05
+- [x] T-05 Create/manage categories — Done 2026-06-05
+- [x] T-06 Filter by date, category, type — Done 2026-06-05
+- [x] D-01 Monthly totals — Done 2026-06-05
+- [x] D-02 Category breakdown chart — Done 2026-06-05
+- [x] D-03 Monthly trend line — Done 2026-06-05
+- [x] D-05 Goals progress bars — Done 2026-06-05
+- [x] S-01 GitHub repo + branch protection — Done 2026-06-05
+- [x] S-02 CI: lint + test + Bandit + Trivy — Done 2026-06-05
+- [x] S-03 Docker multi-stage build — Done 2026-06-05
+- [x] S-04 Railway deploy + env secrets — Done 2026-06-05
+- [x] S-05 HTTPS + HSTS — Done 2026-06-05
+- [x] S-06 Rate limiting on auth endpoints — Done 2026-06-05
+- [x] S-07 Security headers middleware — Done 2026-06-05
+- [x] S-09 Dependabot for Python + npm — Done 2026-06-05
+- [x] S-10 Sentry integration — Done 2026-06-05
+- [x] S-13 OWASP Top 10 checklist review — Done 2026-06-05
