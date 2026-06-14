@@ -1,6 +1,7 @@
 {
   "nav": {
     "overview": "Overview",
+    "budget": "Budget",
     "transactions": "Transactions",
     "goals": "Goals",
     "categories": "Categories",
@@ -104,6 +105,19 @@
     "updateEmail": "Update Email",
     "newEmail": "New email",
     "emailUpdated": "Email updated!"
+  },
+  "budget": {
+    "title": "Budget",
+    "add": "Set Limit",
+    "setLimit": "Set Budget Limit",
+    "limitLabel": "Monthly limit",
+    "spent": "spent",
+    "of": "of",
+    "over": "Over budget",
+    "empty": "No budgets set",
+    "emptyHint": "Set spending limits per category",
+    "saveError": "Failed to save",
+    "export": "Export CSV"
   },
   "auth": {
     "tagline": "Track your finances smartly",

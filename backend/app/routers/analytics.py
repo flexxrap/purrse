@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_current_user, get_db
 from app.limiter import limiter
 from app.models.user import User
-from app.services import analytics_service
+from app.schemas.budget import BudgetBarItem
+from app.services import analytics_service, budget_service
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,22 @@ async def get_category_breakdown(
     year, mon = _parse_month(month)
     return await analytics_service.category_breakdown(
         user_id=current_user.id, year=year, month=mon, db=db
+    )
+
+
+@router.get("/budget", response_model=list[BudgetBarItem])
+@limiter.limit("300/minute")
+async def get_budget_bars(
+    request: Request,
+    month: str | None = Query(None, description="YYYY-MM, default current month"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    year, mon = _parse_month(month)
+    return await budget_service.budget_bars(
+        user_id=current_user.id,
+        month=f"{year:04d}-{mon:02d}",
+        db=db,
     )
 
 

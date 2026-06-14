@@ -1,6 +1,7 @@
 {
   "nav": {
     "overview": "Обзор",
+    "budget": "Бюджет",
     "transactions": "Транзакции",
     "goals": "Цели",
     "categories": "Категории",
@@ -104,6 +105,19 @@
     "updateEmail": "Изменить email",
     "newEmail": "Новый email",
     "emailUpdated": "Email обновлён!"
+  },
+  "budget": {
+    "title": "Бюджет",
+    "add": "Задать лимит",
+    "setLimit": "Установить лимит бюджета",
+    "limitLabel": "Месячный лимит",
+    "spent": "потрачено",
+    "of": "из",
+    "over": "Превышен",
+    "empty": "Лимиты не заданы",
+    "emptyHint": "Задайте лимиты расходов по категориям",
+    "saveError": "Ошибка сохранения",
+    "export": "Экспорт CSV"
   },
   "auth": {
     "tagline": "Умный учёт финансов",

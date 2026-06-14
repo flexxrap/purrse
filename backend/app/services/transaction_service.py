@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import Row, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.category import Category
@@ -142,6 +142,33 @@ async def update(
     await db.commit()
     await db.refresh(tx)
     return tx
+
+
+async def export_all(
+    user_id: uuid.UUID,
+    db: AsyncSession,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> list[Row]:
+    query = (
+        select(
+            Transaction.tx_date,
+            Transaction.amount_cents,
+            Transaction.note,
+            Category.name.label("category_name"),
+            Category.type.label("category_type"),
+        )
+        .outerjoin(Category, Transaction.category_id == Category.id)
+        .where(Transaction.user_id == user_id)
+        .where(Transaction.deleted_at.is_(None))
+    )
+    if date_from:
+        query = query.where(Transaction.tx_date >= date_from)
+    if date_to:
+        query = query.where(Transaction.tx_date <= date_to)
+    query = query.order_by(Transaction.tx_date.desc())
+    result = await db.execute(query)
+    return result.all()
 
 
 async def soft_delete(

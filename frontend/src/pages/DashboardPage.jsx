@@ -7,6 +7,7 @@ import { Logo } from '../components/Logo'
 import Overview from '../components/Overview'
 import Transactions from '../components/Transactions'
 import Goals from '../components/Goals'
+import Budget from '../components/Budget'
 import Categories from '../components/Categories'
 import Settings from '../components/Settings'
 
@@ -14,6 +15,7 @@ const TABS = [
   { id: 'overview',      key: 'nav.overview' },
   { id: 'transactions',  key: 'nav.transactions' },
   { id: 'goals',         key: 'nav.goals' },
+  { id: 'budget',        key: 'nav.budget' },
   { id: 'categories',    key: 'nav.categories' },
   { id: 'settings',      key: 'nav.settings' },
 ]
@@ -50,6 +52,7 @@ const DashboardPage = () => {
       case 'overview':     return <Overview />
       case 'transactions': return <Transactions />
       case 'goals':        return <Goals />
+      case 'budget':       return <Budget />
       case 'categories':   return <Categories />
       case 'settings':     return <Settings />
     }

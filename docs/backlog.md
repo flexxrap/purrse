@@ -45,7 +45,7 @@
 | T-06 | Filter by date, category, type | Must | 3 | `[x]` | Filters combinable; URL-param driven |
 | T-07 | Search by note text | Should | 2 | `[x]` | PostgreSQL full-text; min 3 chars; Phase 2 |
 | T-08 | Import from CSV | Could | 8 | `[ ]` | Column mapping; preview; Phase 3 |
-| T-09 | Export to CSV/PDF | Should | 5 | `[ ]` | Async job; download link; Phase 2 |
+| T-09 | Export to CSV/PDF | Should | 5 | `[x]` | Async job; download link; Phase 2 |
 | T-10 | Recurring transactions | Could | 5 | `[ ]` | Weekly/monthly/yearly; Phase 3 |
 
 ---
@@ -57,7 +57,7 @@
 | D-01 | Monthly totals (income/expense/balance) | P0 | 3 | `[x]` | Server-side calc; updates <1s |
 | D-02 | Category breakdown chart | Must | 3 | `[x]` | Top 5 + Other; category colors |
 | D-03 | Monthly trend line (last 6 months) | Must | 3 | `[x]` | Income vs expense; hover tooltip |
-| D-04 | Budget planning bar (planned vs actual) | Should | 3 | `[ ]` | Per category; red when over; Phase 2 |
+| D-04 | Budget planning bar (planned vs actual) | Should | 3 | `[x]` | Per category; red when over; Phase 2 |
 | D-05 | Goals progress bars | Must | 3 | `[x]` | Months to completion from free balance |
 | D-06 | Monthly budget per category + alerts | Should | 5 | `[ ]` | Alert at 80%; Telegram notify; Phase 2 |
 
@@ -130,3 +130,5 @@
 - [x] A-06 Update email or currency — Done 2026-06-10
 - [x] A-08 Change password — Done 2026-06-10
 - [x] T-07 Full-text search by note (PostgreSQL tsvector GIN, min 3 chars) — Done 2026-06-10
+- [x] T-09 Export to CSV — GET /transactions/export/csv with date filters — Done 2026-06-11
+- [x] D-04 Budget planning bars — budgets table, CRUD + analytics/budget endpoint, Budget tab — Done 2026-06-11

@@ -1,9 +1,12 @@
+import csv
+import io
 import logging
 import uuid
 from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
@@ -20,6 +23,41 @@ from app.services import transaction_service
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
+
+
+@router.get("/export/csv")
+async def export_csv(
+    date_from: date | None = Query(None),
+    date_to: date | None = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = await transaction_service.export_all(
+        user_id=current_user.id,
+        db=db,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["Date", "Category", "Type", "Amount", "Note"])
+    for r in rows:
+        writer.writerow([
+            r.tx_date.isoformat(),
+            r.category_name or "",
+            r.category_type or "",
+            f"{r.amount_cents / 100:.2f}",
+            r.note or "",
+        ])
+    buf.seek(0)
+    df = date_from.isoformat() if date_from else "all"
+    dt = date_to.isoformat() if date_to else "all"
+    filename = f"transactions_{df}_{dt}.csv"
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.post("", response_model=TransactionOut, status_code=status.HTTP_201_CREATED)
