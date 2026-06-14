@@ -13,8 +13,9 @@ from app.limiter import limiter
 
 logger = logging.getLogger(__name__)
 
-if settings.SENTRY_DSN:
-    sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.2)
+_dsn = settings.SENTRY_DSN
+if _dsn and _dsn.startswith("https://") and "/" in _dsn.split("@")[-1]:
+    sentry_sdk.init(dsn=_dsn, traces_sample_rate=0.2)
 
 app = FastAPI(title="Budget App API", version="0.1.0")
 
