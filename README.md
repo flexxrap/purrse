@@ -3,7 +3,7 @@
 > Track income and expenses by category, set savings goals, and plan monthly budgets.
 > Available as a web app and Telegram Mini App.
 
-**Live:** [purrse.up.railway.app](https://purrse.up.railway.app) · **Bot:** [@purrse_bot](https://t.me/purrse_bot)
+**Live:** [budgetapp-production-a39a.up.railway.app](https://budgetapp-production-a39a.up.railway.app) · **Bot:** [@simple_budget_app_bot](https://t.me/simple_budget_app_bot/purrse)
 
 ---
 
