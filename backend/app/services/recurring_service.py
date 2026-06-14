@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.account import Account
 from app.models.recurring import RecurringTransaction
 from app.models.transaction import Transaction
 
@@ -32,6 +33,7 @@ async def list_all(user_id: uuid.UUID, db: AsyncSession) -> list[RecurringTransa
 
 async def create(
     user_id: uuid.UUID,
+    account_id: uuid.UUID,
     amount_cents: int,
     category_id: uuid.UUID | None,
     note: str | None,
@@ -39,8 +41,18 @@ async def create(
     start_date: date,
     db: AsyncSession,
 ) -> RecurringTransaction:
+    acc_result = await db.execute(
+        select(Account).where(Account.id == account_id, Account.user_id == user_id)
+    )
+    if acc_result.scalar_one_or_none() is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Account not found or does not belong to user",
+        )
+
     rt = RecurringTransaction(
         user_id=user_id,
+        account_id=account_id,
         category_id=category_id,
         amount_cents=amount_cents,
         note=note,
@@ -57,6 +69,7 @@ async def update(
     rt_id: uuid.UUID,
     user_id: uuid.UUID,
     db: AsyncSession,
+    account_id: uuid.UUID | None = None,
     amount_cents: int | None = None,
     category_id: uuid.UUID | None = None,
     note: str | None = None,
@@ -75,6 +88,16 @@ async def update(
             status_code=status.HTTP_404_NOT_FOUND, detail="Recurring transaction not found"
         )
 
+    if account_id is not None:
+        acc_result = await db.execute(
+            select(Account).where(Account.id == account_id, Account.user_id == user_id)
+        )
+        if acc_result.scalar_one_or_none() is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Account not found or does not belong to user",
+            )
+        rt.account_id = account_id
     if amount_cents is not None:
         rt.amount_cents = amount_cents
     if category_id is not None:
@@ -127,6 +150,7 @@ async def process_due(db: AsyncSession) -> int:
         while current <= today:
             tx = Transaction(
                 user_id=rt.user_id,
+                account_id=rt.account_id,
                 category_id=rt.category_id,
                 amount_cents=rt.amount_cents,
                 note=rt.note,

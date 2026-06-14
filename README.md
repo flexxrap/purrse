@@ -9,7 +9,9 @@
 
 ## Features
 
-- **Transactions** — add income/expense with category, date, and note; soft delete; full-text search
+- **Multiple accounts / wallets** — cash, card, savings, or custom accounts, each with its own balance computed from transactions and transfers
+- **Transfers between accounts** — move money between your own accounts without affecting income/expense totals
+- **Transactions** — add income/expense with category, account, date, and note; soft delete; full-text search
 - **Categories** — custom categories with colors; up to 50 per user
 - **Analytics** — monthly totals, category breakdown pie chart, 6-month income/expense trend
 - **Budget planning** — set monthly limits per category; alert at 80% via Telegram
@@ -42,6 +44,7 @@ Telegram Bot / Web Browser
         ▼
   FastAPI (Railway)
    ├── /auth           — JWT + refresh tokens
+   ├── /accounts       — wallets + transfers between accounts
    ├── /transactions
    ├── /categories
    ├── /analytics

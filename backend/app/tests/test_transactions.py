@@ -13,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 _USER_ID = uuid.uuid4()
 _TX_ID = uuid.uuid4()
 _CAT_ID = uuid.uuid4()
+_ACCOUNT_ID = uuid.uuid4()
 _TODAY = date.today()
 
 
@@ -26,6 +27,7 @@ def _make_tx(**kwargs):
     tx = MagicMock()
     tx.id = kwargs.get("id", _TX_ID)
     tx.user_id = _USER_ID
+    tx.account_id = kwargs.get("account_id", _ACCOUNT_ID)
     tx.category_id = kwargs.get("category_id", _CAT_ID)
     tx.amount_cents = kwargs.get("amount_cents", 1000)
     tx.note = kwargs.get("note", None)
@@ -42,6 +44,13 @@ def _make_cat():
     c.user_id = _USER_ID
     c.type = "expense"
     return c
+
+
+def _make_account():
+    a = MagicMock()
+    a.id = _ACCOUNT_ID
+    a.user_id = _USER_ID
+    return a
 
 
 def _scalar_one_or_none(value):
@@ -92,8 +101,9 @@ def _clear():
 async def test_create_transaction():
     db = AsyncMock()
     db.execute = AsyncMock(side_effect=[
-        _scalar_one_or_none(_make_cat()),  # transaction_service: category ownership check
-        _scalar_one_or_none(None),          # check_and_alert: no budget → early return
+        _scalar_one_or_none(_make_cat()),      # transaction_service: category ownership check
+        _scalar_one_or_none(_make_account()),  # transaction_service: account ownership check
+        _scalar_one_or_none(None),             # check_and_alert: no budget → early return
     ])
     db.add = MagicMock()
     db.commit = AsyncMock()
@@ -101,6 +111,7 @@ async def test_create_transaction():
 
     async with _make_client(db) as c:
         response = await c.post("/transactions", json={
+            "account_id": str(_ACCOUNT_ID),
             "amount_cents": 1500,
             "category_id": str(_CAT_ID),
             "tx_date": str(_TODAY),
@@ -119,6 +130,7 @@ async def test_create_transaction_bad_category():
 
     async with _make_client(db) as c:
         response = await c.post("/transactions", json={
+            "account_id": str(_ACCOUNT_ID),
             "amount_cents": 500,
             "category_id": str(uuid.uuid4()),
             "tx_date": str(_TODAY),
@@ -130,12 +142,35 @@ async def test_create_transaction_bad_category():
 
 
 @pytest.mark.asyncio
+async def test_create_transaction_bad_account():
+    """Account not found or not owned by user → 400."""
+    db = AsyncMock()
+    db.execute = AsyncMock(side_effect=[
+        _scalar_one_or_none(_make_cat()),  # category ownership check passes
+        _scalar_one_or_none(None),         # account ownership check fails
+    ])
+
+    async with _make_client(db) as c:
+        response = await c.post("/transactions", json={
+            "account_id": str(uuid.uuid4()),
+            "amount_cents": 500,
+            "category_id": str(_CAT_ID),
+            "tx_date": str(_TODAY),
+        })
+    _clear()
+
+    assert response.status_code == 400
+    assert "Account" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_create_transaction_zero_amount():
     """amount_cents must be > 0 → 422."""
     db = AsyncMock()
 
     async with _make_client(db) as c:
         response = await c.post("/transactions", json={
+            "account_id": str(_ACCOUNT_ID),
             "amount_cents": 0,
             "category_id": str(_CAT_ID),
             "tx_date": str(_TODAY),
@@ -183,6 +218,20 @@ async def test_list_transactions_with_filters():
                 "limit": 10,
             },
         )
+    _clear()
+
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_list_transactions_with_account_filter():
+    tx = _make_tx()
+    db = AsyncMock()
+    db.execute = AsyncMock(return_value=_scalars_list([tx]))
+
+    async with _make_client(db) as c:
+        response = await c.get("/transactions", params={"account_id": str(_ACCOUNT_ID)})
     _clear()
 
     assert response.status_code == 200

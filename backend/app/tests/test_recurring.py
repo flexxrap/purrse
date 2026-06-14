@@ -8,6 +8,7 @@ from httpx import ASGITransport, AsyncClient
 
 _USER_ID = uuid.uuid4()
 _RT_ID = uuid.uuid4()
+_ACCOUNT_ID = uuid.uuid4()
 
 
 def _make_user():
@@ -24,6 +25,7 @@ def _make_rt():
     rt = MagicMock()
     rt.id = _RT_ID
     rt.user_id = _USER_ID
+    rt.account_id = _ACCOUNT_ID
     rt.category_id = None
     rt.amount_cents = 5000
     rt.note = "Monthly rent"
@@ -89,6 +91,7 @@ async def test_create_recurring_happy():
     async def fake_refresh(obj):
         obj.id = rt.id
         obj.user_id = rt.user_id
+        obj.account_id = rt.account_id
         obj.category_id = rt.category_id
         obj.amount_cents = rt.amount_cents
         obj.note = rt.note
@@ -103,6 +106,7 @@ async def test_create_recurring_happy():
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost") as c:
         resp = await c.post("/recurring", json={
+            "account_id": str(_ACCOUNT_ID),
             "amount_cents": 5000,
             "frequency": "monthly",
             "start_date": "2026-07-01",

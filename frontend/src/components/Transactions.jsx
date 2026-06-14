@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import transactionsApi from '../api/transactions'
 import categoriesApi from '../api/categories'
 import recurringApi from '../api/recurring'
+import accountsApi from '../api/accounts'
 import useAuthStore from '../store/authStore'
 import { formatMoney, formatDate, today, firstOfMonth, apiError } from '../utils'
 
@@ -12,10 +13,11 @@ const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(13,10,16,0
 const cardStyle = { background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '460px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)', maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto' }
 const inputStyle2 = { width: '100%', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border-card)', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }
 
-const ImportCsvModal = ({ onClose, onSuccess }) => {
+const ImportCsvModal = ({ accounts, onClose, onSuccess }) => {
   const { t } = useTranslation()
   const [step, setStep] = useState(1)
   const [file, setFile] = useState(null)
+  const [accountId, setAccountId] = useState(accounts[0]?.id || '')
   const [preview, setPreview] = useState(null)
   const [mapping, setMapping] = useState({ date_col: 0, amount_col: 1, category_col: null, note_col: null })
   const [result, setResult] = useState(null)
@@ -30,6 +32,7 @@ const ImportCsvModal = ({ onClose, onSuccess }) => {
 
   const handlePreview = async () => {
     if (!file) { setError(t('transactions.importSelectFile')); return }
+    if (!accountId) { setError(t('transactions.importSelectAccount')); return }
     setLoading(true)
     setError('')
     try {
@@ -47,7 +50,7 @@ const ImportCsvModal = ({ onClose, onSuccess }) => {
     setLoading(true)
     setError('')
     try {
-      const data = await transactionsApi.importConfirm(file, mapping)
+      const data = await transactionsApi.importConfirm(file, mapping, accountId)
       setResult(data)
       setStep(3)
       onSuccess()
@@ -83,6 +86,12 @@ const ImportCsvModal = ({ onClose, onSuccess }) => {
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
               {t('transactions.importHint')}
             </p>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.importAccountLabel')}</label>
+              <select value={accountId} onChange={(e) => setAccountId(e.target.value)} style={inputStyle2}>
+                {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </div>
             <div
               style={{ border: '2px dashed var(--border-card)', borderRadius: '12px', padding: '32px 16px', textAlign: 'center', cursor: 'pointer' }}
               onClick={() => fileRef.current?.click()}
@@ -176,8 +185,9 @@ const ImportCsvModal = ({ onClose, onSuccess }) => {
   )
 }
 
-const RecurringModal = ({ onClose, onSuccess }) => {
+const RecurringModal = ({ accounts, onClose, onSuccess }) => {
   const { t } = useTranslation()
+  const [accountId, setAccountId] = useState(accounts[0]?.id || '')
   const [amount, setAmount] = useState('')
   const [frequency, setFrequency] = useState('monthly')
   const [startDate, setStartDate] = useState(today())
@@ -187,14 +197,14 @@ const RecurringModal = ({ onClose, onSuccess }) => {
 
   const handleSave = async () => {
     const amountCents = Math.round(parseFloat(amount) * 100)
-    if (!amountCents || amountCents <= 0 || !startDate) {
+    if (!amountCents || amountCents <= 0 || !startDate || !accountId) {
       setError(t('transactions.recurringError'))
       return
     }
     setLoading(true)
     setError('')
     try {
-      await recurringApi.create({ amount_cents: amountCents, frequency, start_date: startDate, note: note.trim() || null })
+      await recurringApi.create({ account_id: accountId, amount_cents: amountCents, frequency, start_date: startDate, note: note.trim() || null })
       onSuccess()
       onClose()
     } catch (e) {
@@ -212,6 +222,12 @@ const RecurringModal = ({ onClose, onSuccess }) => {
         style={{ ...cardStyle, maxWidth: '380px' }} onClick={(e) => e.stopPropagation()}>
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>{t('transactions.recurringNew')}</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.account')}</label>
+            <select value={accountId} onChange={e => setAccountId(e.target.value)} style={inputStyle2}>
+              {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.amount')}</label>
             <input type="number" step="0.01" min="0.01" value={amount} onChange={e => setAmount(e.target.value)} style={inputStyle2} placeholder="0.00" autoFocus />
@@ -249,11 +265,12 @@ const RecurringModal = ({ onClose, onSuccess }) => {
   )
 }
 
-const TransactionModal = ({ transaction, categories, onSave, onClose, loading, error, initialType }) => {
+const TransactionModal = ({ transaction, categories, accounts, onSave, onClose, loading, error, initialType }) => {
   const { t } = useTranslation()
   const defaultCat = transaction?.category_id
     || (initialType ? (categories.find((c) => c.type === initialType)?.id || '') : '')
   const [amount, setAmount] = useState(transaction ? (transaction.amount_cents / 100).toFixed(2) : '')
+  const [accountId, setAccountId] = useState(transaction?.account_id || accounts[0]?.id || '')
   const [categoryId, setCategoryId] = useState(defaultCat)
   const [txDate, setTxDate] = useState(transaction?.tx_date || today())
   const [note, setNote] = useState(transaction?.note || '')
@@ -261,12 +278,12 @@ const TransactionModal = ({ transaction, categories, onSave, onClose, loading, e
 
   const handleSave = () => {
     const amountCents = Math.round(parseFloat(amount) * 100)
-    if (!amountCents || amountCents <= 0 || !categoryId || !txDate) {
+    if (!amountCents || amountCents <= 0 || !categoryId || !txDate || !accountId) {
       setLocalError(t('transactions.fillRequired'))
       return
     }
     setLocalError('')
-    onSave({ amount_cents: amountCents, category_id: categoryId, tx_date: txDate, note: note.trim() || null })
+    onSave({ account_id: accountId, amount_cents: amountCents, category_id: categoryId, tx_date: txDate, note: note.trim() || null })
   }
 
   const inputStyle = { width: '100%', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border-card)', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }
@@ -291,6 +308,13 @@ const TransactionModal = ({ transaction, categories, onSave, onClose, loading, e
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.amount')}</label>
             <input type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} style={inputStyle} placeholder="0.00" autoFocus />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.account')}</label>
+            <select value={accountId} onChange={(e) => setAccountId(e.target.value)} style={inputStyle}>
+              {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
           </div>
 
           <div>
@@ -339,7 +363,7 @@ const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
   const { t } = useTranslation()
   const currency = user?.currency || 'USD'
 
-  const [filters, setFilters] = useState({ date_from: firstOfMonth(), date_to: today(), category_id: '', type: '', search: '' })
+  const [filters, setFilters] = useState({ date_from: firstOfMonth(), date_to: today(), category_id: '', account_id: '', type: '', search: '' })
   const [modal, setModal] = useState(null)
   const [mutError, setMutError] = useState('')
   const [showImport, setShowImport] = useState(false)
@@ -357,6 +381,9 @@ const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list })
   const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c]))
+
+  const { data: accounts = [] } = useQuery({ queryKey: ['accounts'], queryFn: accountsApi.list })
+  const accountMap = Object.fromEntries(accounts.map((a) => [a.id, a]))
 
   const { data: recurringList = [] } = useQuery({ queryKey: ['recurring'], queryFn: recurringApi.list })
   const queryClient = useQueryClient()
@@ -438,6 +465,13 @@ const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
               <option value="income">{t('transactions.income')}</option>
             </select>
           </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{t('transactions.account')}</label>
+            <select value={filters.account_id} onChange={(e) => setFilters((f) => ({ ...f, account_id: e.target.value }))} style={inputStyle}>
+              <option value="">{t('transactions.allAccounts')}</option>
+              {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
         </div>
         <div style={{ marginTop: '10px', position: 'relative' }}>
           <input
@@ -494,7 +528,7 @@ const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
                     <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat?.name || 'Uncategorized'}</span>
                     {tx.note && <span style={{ fontSize: '12px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="hidden sm:block">— {tx.note}</span>}
                   </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{formatDate(tx.tx_date)}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{formatDate(tx.tx_date)}{accountMap[tx.account_id] ? ` · ${accountMap[tx.account_id].name}` : ''}</span>
                 </div>
 
                 <div style={{ fontSize: '13px', fontWeight: 600, flexShrink: 0, color: isExpense ? 'var(--amaranth)' : '#10b981' }}>
@@ -570,19 +604,21 @@ const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
       <AnimatePresence>
         {modal !== null && (
           <TransactionModal
-            transaction={modal.tx} categories={categories}
+            transaction={modal.tx} categories={categories} accounts={accounts}
             onSave={handleSave} onClose={() => setModal(null)}
             loading={isMutating} error={mutError} initialType={modal.type}
           />
         )}
         {showImport && (
           <ImportCsvModal
+            accounts={accounts}
             onClose={() => setShowImport(false)}
             onSuccess={invalidate}
           />
         )}
         {showRecurringModal && (
           <RecurringModal
+            accounts={accounts}
             onClose={() => setShowRecurringModal(false)}
             onSuccess={() => queryClient.invalidateQueries({ queryKey: ['recurring'] })}
           />

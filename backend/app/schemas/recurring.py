@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class RecurringCreate(BaseModel):
+    account_id: uuid.UUID
     amount_cents: int = Field(gt=0)
     category_id: uuid.UUID | None = None
     note: str | None = Field(None, max_length=500)
@@ -14,6 +15,7 @@ class RecurringCreate(BaseModel):
 
 
 class RecurringUpdate(BaseModel):
+    account_id: uuid.UUID | None = None
     amount_cents: int | None = Field(None, gt=0)
     category_id: uuid.UUID | None = None
     note: str | None = Field(None, max_length=500)
@@ -26,6 +28,7 @@ class RecurringOut(BaseModel):
 
     id: uuid.UUID
     user_id: uuid.UUID
+    account_id: uuid.UUID
     category_id: uuid.UUID | None
     amount_cents: int
     note: str | None

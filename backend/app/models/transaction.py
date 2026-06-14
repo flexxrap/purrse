@@ -16,6 +16,7 @@ class Transaction(Base):
         CheckConstraint("char_length(note) <= 500", name="transactions_note_length"),
         Index("idx_transactions_user_id", "user_id"),
         Index("idx_transactions_tx_date", "tx_date"),
+        Index("idx_transactions_account_id", "account_id"),
         Index(
             "idx_transactions_user_date",
             "user_id",
@@ -28,6 +29,7 @@ class Transaction(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     category_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )

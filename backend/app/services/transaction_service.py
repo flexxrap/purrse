@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import Row, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.account import Account
 from app.models.category import Category
 from app.models.transaction import Transaction
 
@@ -17,6 +18,7 @@ _PAGE_SIZE_MAX = 100
 
 async def create(
     user_id: uuid.UUID,
+    account_id: uuid.UUID,
     amount_cents: int,
     category_id: uuid.UUID,
     tx_date: date,
@@ -36,8 +38,22 @@ async def create(
             detail="Category not found or does not belong to user",
         )
 
+    # Verify account exists and belongs to this user
+    acc_result = await db.execute(
+        select(Account).where(
+            Account.id == account_id,
+            Account.user_id == user_id,
+        )
+    )
+    if acc_result.scalar_one_or_none() is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Account not found or does not belong to user",
+        )
+
     tx = Transaction(
         user_id=user_id,
+        account_id=account_id,
         category_id=category_id,
         amount_cents=amount_cents,
         tx_date=tx_date,
@@ -55,6 +71,7 @@ async def list_transactions(
     date_from: date | None = None,
     date_to: date | None = None,
     category_id: uuid.UUID | None = None,
+    account_id: uuid.UUID | None = None,
     type_filter: str | None = None,
     search: str | None = None,
     cursor: uuid.UUID | None = None,
@@ -79,6 +96,9 @@ async def list_transactions(
 
     if category_id is not None:
         query = query.where(Transaction.category_id == category_id)
+
+    if account_id is not None:
+        query = query.where(Transaction.account_id == account_id)
 
     if type_filter is not None:
         # Join categories to filter by type
@@ -112,6 +132,7 @@ async def update(
     tx_id: uuid.UUID,
     user_id: uuid.UUID,
     db: AsyncSession,
+    account_id: uuid.UUID | None = None,
     amount_cents: int | None = None,
     category_id: uuid.UUID | None = None,
     tx_date: date | None = None,
@@ -128,6 +149,19 @@ async def update(
     if tx is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
+    if account_id is not None:
+        acc_result = await db.execute(
+            select(Account).where(
+                Account.id == account_id,
+                Account.user_id == user_id,
+            )
+        )
+        if acc_result.scalar_one_or_none() is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Account not found or does not belong to user",
+            )
+        tx.account_id = account_id
     if amount_cents is not None:
         tx.amount_cents = amount_cents
     if category_id is not None:
@@ -173,6 +207,7 @@ async def export_all(
 
 async def bulk_create(
     user_id: uuid.UUID,
+    account_id: uuid.UUID,
     rows: list[dict],
     db: AsyncSession,
 ) -> int:
@@ -181,6 +216,7 @@ async def bulk_create(
     objs = [
         Transaction(
             user_id=user_id,
+            account_id=account_id,
             category_id=r["category_id"],
             amount_cents=r["amount_cents"],
             tx_date=r["tx_date"],

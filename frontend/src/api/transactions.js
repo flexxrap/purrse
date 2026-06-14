@@ -29,10 +29,11 @@ const transactionsApi = {
     fd.append('file', file)
     return client.post('/transactions/import/preview', fd).then(r => r.data)
   },
-  importConfirm: (file, mapping) => {
+  importConfirm: (file, mapping, accountId) => {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('mapping', JSON.stringify(mapping))
+    fd.append('account_id', accountId)
     return client.post('/transactions/import/confirm', fd).then(r => r.data)
   },
 }

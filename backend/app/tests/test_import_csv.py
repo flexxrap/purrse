@@ -10,6 +10,7 @@ from httpx import ASGITransport, AsyncClient
 
 _USER_ID = uuid.uuid4()
 _CAT_ID = uuid.uuid4()
+_ACCOUNT_ID = uuid.uuid4()
 
 
 def _make_user():
@@ -100,7 +101,7 @@ async def test_import_confirm_happy():
         resp = await c.post(
             "/transactions/import/confirm",
             files={"file": ("data.csv", BytesIO(CSV_CONTENT), "text/csv")},
-            data={"mapping": mapping},
+            data={"mapping": mapping, "account_id": str(_ACCOUNT_ID)},
         )
 
     app.dependency_overrides.clear()

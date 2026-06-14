@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class TransactionCreate(BaseModel):
+    account_id: uuid.UUID
     amount_cents: int = Field(gt=0)
     category_id: uuid.UUID
     tx_date: date
@@ -12,6 +13,7 @@ class TransactionCreate(BaseModel):
 
 
 class TransactionUpdate(BaseModel):
+    account_id: uuid.UUID | None = None
     amount_cents: int | None = Field(None, gt=0)
     category_id: uuid.UUID | None = None
     tx_date: date | None = None
@@ -23,6 +25,7 @@ class TransactionOut(BaseModel):
 
     id: uuid.UUID
     user_id: uuid.UUID
+    account_id: uuid.UUID
     category_id: uuid.UUID | None
     amount_cents: int
     note: str | None

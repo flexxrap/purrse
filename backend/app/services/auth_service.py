@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.models.account import Account
 from app.models.audit_log import AuditLog
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
@@ -225,6 +226,7 @@ async def telegram_login(
         user = User(telegram_id=telegram_id)
         db.add(user)
         await db.flush()
+        db.add(Account(user_id=user.id, name="Main", type="cash", initial_balance_cents=0))
 
     access_token, raw_token = await _issue_tokens(user, db)
     await _write_audit(db, "telegram_login", str(user.id), request)
@@ -272,6 +274,7 @@ async def register(
     user = User(email=email, password_hash=hash_password(password))
     db.add(user)
     await db.flush()  # populate user.id before creating dependent rows
+    db.add(Account(user_id=user.id, name="Main", type="cash", initial_balance_cents=0))
 
     access_token, raw_token = await _issue_tokens(user, db)
     await _write_audit(db, "register", str(user.id), request)

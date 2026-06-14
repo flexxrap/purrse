@@ -27,6 +27,7 @@ def _make_tx(note="coffee shop"):
     tx = MagicMock()
     tx.id = uuid.uuid4()
     tx.user_id = _USER_ID
+    tx.account_id = uuid.uuid4()
     tx.category_id = uuid.uuid4()
     tx.amount_cents = 500
     tx.note = note

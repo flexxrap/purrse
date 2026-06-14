@@ -30,6 +30,7 @@ async def create_recurring(
 ):
     return await recurring_service.create(
         user_id=current_user.id,
+        account_id=body.account_id,
         amount_cents=body.amount_cents,
         category_id=body.category_id,
         note=body.note,
@@ -50,6 +51,7 @@ async def update_recurring(
         rt_id=rt_id,
         user_id=current_user.id,
         db=db,
+        account_id=body.account_id,
         amount_cents=body.amount_cents,
         category_id=body.category_id,
         note=body.note,

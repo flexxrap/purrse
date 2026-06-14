@@ -21,7 +21,7 @@ from app.schemas.transaction import (
     TransactionOut,
     TransactionUpdate,
 )
-from app.services import budget_service, import_service, transaction_service
+from app.services import account_service, budget_service, import_service, transaction_service
 from app.services.category_service import get_all as get_all_categories
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,7 @@ async def import_preview(
 async def import_confirm(
     file: UploadFile = File(...),
     mapping: str = Form(...),
+    account_id: uuid.UUID = Form(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -95,6 +96,7 @@ async def import_confirm(
     except Exception:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Invalid column mapping")
+    await account_service.get_one(account_id, current_user.id, db)
     categories = await get_all_categories(current_user.id, db)
     rows, skipped = import_service.parse_csv_rows(
         content,
@@ -104,7 +106,7 @@ async def import_confirm(
         note_col=m.note_col,
         categories=categories,
     )
-    created = await transaction_service.bulk_create(current_user.id, rows, db)
+    created = await transaction_service.bulk_create(current_user.id, account_id, rows, db)
     return ImportConfirmOut(created=created, skipped=skipped)
 
 
@@ -118,6 +120,7 @@ async def create_transaction(
 ):
     tx = await transaction_service.create(
         user_id=current_user.id,
+        account_id=body.account_id,
         amount_cents=body.amount_cents,
         category_id=body.category_id,
         tx_date=body.tx_date,
@@ -141,6 +144,7 @@ async def list_transactions(
     date_from: date | None = Query(None),
     date_to: date | None = Query(None),
     category_id: uuid.UUID | None = Query(None),
+    account_id: uuid.UUID | None = Query(None),
     type: Literal["income", "expense"] | None = Query(None),
     search: str | None = Query(None, min_length=3, max_length=200),
     cursor: uuid.UUID | None = Query(None),
@@ -154,6 +158,7 @@ async def list_transactions(
         date_from=date_from,
         date_to=date_to,
         category_id=category_id,
+        account_id=account_id,
         type_filter=type,
         search=search,
         cursor=cursor,
@@ -175,6 +180,7 @@ async def update_transaction(
         tx_id=tx_id,
         user_id=current_user.id,
         db=db,
+        account_id=body.account_id,
         amount_cents=body.amount_cents,
         category_id=body.category_id,
         tx_date=body.tx_date,

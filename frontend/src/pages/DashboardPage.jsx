@@ -9,6 +9,7 @@ import Transactions from '../components/Transactions'
 import Goals from '../components/Goals'
 import Budget from '../components/Budget'
 import Categories from '../components/Categories'
+import Accounts from '../components/Accounts'
 import Settings from '../components/Settings'
 
 const ONBOARDING_KEY = 'purrse-onboarded'
@@ -59,6 +60,7 @@ const OnboardingModal = ({ onDone, onGoCategories }) => {
 const TABS = [
   { id: 'overview',      key: 'nav.overview',     icon: '📊' },
   { id: 'transactions',  key: 'nav.transactions', icon: '💸' },
+  { id: 'accounts',      key: 'nav.accounts',     icon: '💳' },
   { id: 'goals',         key: 'nav.goals',        icon: '🎯' },
   { id: 'budget',        key: 'nav.budget',       icon: '📅' },
   { id: 'categories',    key: 'nav.categories',   icon: '🏷️' },
@@ -120,6 +122,7 @@ const DashboardPage = () => {
     switch (activeTab) {
       case 'overview':     return <Overview onQuickAdd={quickAddTransaction} />
       case 'transactions': return <Transactions quickAdd={pendingQuickAdd} onQuickAddConsumed={() => setPendingQuickAdd(null)} />
+      case 'accounts':     return <Accounts />
       case 'goals':        return <Goals />
       case 'budget':       return <Budget />
       case 'categories':   return <Categories />

@@ -115,6 +115,7 @@ async def security_headers(request: Request, call_next):
 
 
 from app.routers import (  # noqa: E402
+    accounts,
     analytics,
     auth,
     bot,
@@ -128,6 +129,7 @@ from app.routers import (  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(accounts.router)
 app.include_router(categories.router)
 app.include_router(transactions.router)
 app.include_router(goals.router)
