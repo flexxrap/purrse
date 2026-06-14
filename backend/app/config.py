@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str
     EXTRA_ORIGINS: str = ""  # comma-separated extra allowed origins (e.g. localhost for dev)
     SENTRY_DSN: str = ""
+    BACKEND_URL: str = ""  # e.g. https://api.example.railway.app — for webhook auto-registration
 
     @property
     def ALLOWED_ORIGINS(self) -> list[str]:
