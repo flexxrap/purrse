@@ -52,11 +52,11 @@
 
 | ID | Story | Priority | SP | Status | AC |
 |----|-------|----------|----|--------|----|
-| D-01 | Monthly totals (income/expense/balance) | P0 | 3 | `[ ]` | Server-side calc; updates <1s |
-| D-02 | Category breakdown chart | Must | 3 | `[ ]` | Top 5 + Other; category colors |
-| D-03 | Monthly trend line (last 6 months) | Must | 3 | `[ ]` | Income vs expense; hover tooltip |
+| D-01 | Monthly totals (income/expense/balance) | P0 | 3 | `[x]` | Server-side calc; updates <1s |
+| D-02 | Category breakdown chart | Must | 3 | `[x]` | Top 5 + Other; category colors |
+| D-03 | Monthly trend line (last 6 months) | Must | 3 | `[x]` | Income vs expense; hover tooltip |
 | D-04 | Budget planning bar (planned vs actual) | Should | 3 | `[ ]` | Per category; red when over; Phase 2 |
-| D-05 | Goals progress bars | Must | 3 | `[ ]` | Months to completion from free balance |
+| D-05 | Goals progress bars | Must | 3 | `[x]` | Months to completion from free balance |
 | D-06 | Monthly budget per category + alerts | Should | 5 | `[ ]` | Alert at 80%; Telegram notify; Phase 2 |
 
 ---
@@ -67,11 +67,11 @@
 |----|------|----------|----|--------|---------------------|
 | S-01 | GitHub repo + branch protection | P0 | 1 | `[x]` | Direct push to main blocked; CI required |
 | S-02 | CI: lint + test + Bandit + Trivy | P0 | 3 | `[x]` | Pipeline <5 min; HIGH findings block merge |
-| S-03 | Docker multi-stage build | P0 | 2 | `[ ]` | Image <200 MB; non-root user |
+| S-03 | Docker multi-stage build | P0 | 2 | `[x]` | Image <200 MB; non-root user |
 | S-04 | Railway deploy + env secrets | P0 | 2 | `[ ]` | No secrets in code; prod URL live |
-| S-05 | HTTPS + HSTS | P0 | 1 | `[ ]` | Railway auto-TLS; HSTS header |
+| S-05 | HTTPS + HSTS | P0 | 1 | `[x]` | Railway auto-TLS; HSTS header |
 | S-06 | Rate limiting on auth endpoints | P0 | 2 | `[ ]` | 60/min per IP; 429 with Retry-After |
-| S-07 | Security headers middleware | P0 | 2 | `[ ]` | CSP, X-Frame-Options, etc. |
+| S-07 | Security headers middleware | P0 | 2 | `[x]` | CSP, X-Frame-Options, etc. |
 | S-08 | Automated DB backups to R2 | Must | 3 | `[ ]` | Daily; verified restore; Phase 2 |
 | S-09 | Dependabot for Python + npm | Must | 1 | `[x]` | PRs within 24h of new CVE |
 | S-10 | Sentry integration | Must | 2 | `[ ]` | Errors in Sentry <30s; p95 tracked |
