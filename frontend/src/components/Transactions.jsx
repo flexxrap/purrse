@@ -13,7 +13,8 @@ const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(13,10,16,0
 const cardStyle = { background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '460px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)', maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto' }
 const inputStyle2 = { width: '100%', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', border: '1px solid var(--border-card)', background: 'var(--surface)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }
 
-const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
+const ImportCsvModal = ({ onClose, onSuccess }) => {
+  const { t } = useTranslation()
   const [step, setStep] = useState(1)
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
@@ -29,7 +30,7 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
   }
 
   const handlePreview = async () => {
-    if (!file) { setError('Please select a CSV file'); return }
+    if (!file) { setError(t('transactions.importSelectFile')); return }
     setLoading(true)
     setError('')
     try {
@@ -69,7 +70,7 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-            {step === 1 ? 'Import CSV — Upload' : step === 2 ? 'Import CSV — Map Columns' : 'Import CSV — Done'}
+            {step === 1 ? t('transactions.importTitle1') : step === 2 ? t('transactions.importTitle2') : t('transactions.importTitle3')}
           </h3>
           <div style={{ display: 'flex', gap: '4px' }}>
             {[1, 2, 3].map(s => (
@@ -81,7 +82,7 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-              Select a CSV file (max 5 MB). First row must be headers.
+              {t('transactions.importHint')}
             </p>
             <div
               style={{ border: '2px dashed var(--border-card)', borderRadius: '12px', padding: '32px 16px', textAlign: 'center', cursor: 'pointer' }}
@@ -90,18 +91,18 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
               <input ref={fileRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleFileChange} />
               {file
                 ? <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{file.name}</span>
-                : <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Click to choose a .csv file</span>
+                : <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('transactions.importChoose')}</span>
               }
             </div>
             {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
             <div style={{ display: 'flex', gap: '10px' }}>
               <motion.div whileTap={{ scale: 0.97 }} onClick={onClose}
                 style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}>
-                Cancel
+                {t('transactions.cancel')}
               </motion.div>
               <motion.div whileTap={{ scale: 0.97 }} onClick={loading ? undefined : handlePreview}
                 style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: loading ? 0.7 : 1, userSelect: 'none' }}>
-                {loading ? 'Loading…' : 'Next →'}
+                {loading ? t('transactions.loading') : t('transactions.next')}
               </motion.div>
             </div>
           </div>
@@ -110,13 +111,13 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
         {step === 2 && preview && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-              Found <strong>{preview.total_rows}</strong> data rows. Map columns:
+              {t('transactions.importFound', { count: preview.total_rows })}
             </p>
             {[
-              { label: 'Date column *', key: 'date_col', required: true },
-              { label: 'Amount column *', key: 'amount_col', required: true },
-              { label: 'Category column', key: 'category_col', required: false },
-              { label: 'Note column', key: 'note_col', required: false },
+              { label: t('transactions.importDateCol'), key: 'date_col', required: true },
+              { label: t('transactions.importAmountCol'), key: 'amount_col', required: true },
+              { label: t('transactions.importCategoryCol'), key: 'category_col', required: false },
+              { label: t('transactions.importNoteCol'), key: 'note_col', required: false },
             ].map(({ label, key, required }) => (
               <div key={key}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{label}</label>
@@ -125,7 +126,7 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
                   onChange={(e) => setMapping(m => ({ ...m, [key]: e.target.value === '' ? null : parseInt(e.target.value, 10) }))}
                   style={inputStyle2}
                 >
-                  {!required && <option value="">— skip —</option>}
+                  {!required && <option value="">{t('transactions.importSkip')}</option>}
                   {colOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
@@ -148,11 +149,11 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
             <div style={{ display: 'flex', gap: '10px' }}>
               <motion.div whileTap={{ scale: 0.97 }} onClick={() => { setStep(1); setError('') }}
                 style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}>
-                ← Back
+                {t('transactions.back')}
               </motion.div>
               <motion.div whileTap={{ scale: 0.97 }} onClick={loading ? undefined : handleConfirm}
                 style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: loading ? 0.7 : 1, userSelect: 'none' }}>
-                {loading ? 'Importing…' : 'Import'}
+                {loading ? t('transactions.importing') : t('transactions.import')}
               </motion.div>
             </div>
           </div>
@@ -161,13 +162,13 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
         {step === 3 && result && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
             <div style={{ fontSize: '36px' }}>✓</div>
-            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Import complete!</p>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{t('transactions.importDone')}</p>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-              <strong>{result.created}</strong> transactions created, <strong>{result.skipped}</strong> rows skipped.
+              {t('transactions.importStats', { created: result.created, skipped: result.skipped })}
             </p>
             <motion.div whileTap={{ scale: 0.97 }} onClick={onClose}
               style={{ borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: 'pointer', background: 'var(--amaranth-btn)', color: 'white', userSelect: 'none' }}>
-              Close
+              {t('transactions.close')}
             </motion.div>
           </div>
         )}
@@ -177,6 +178,7 @@ const ImportCsvModal = ({ categories, onClose, onSuccess }) => {
 }
 
 const RecurringModal = ({ onClose, onSuccess }) => {
+  const { t } = useTranslation()
   const [amount, setAmount] = useState('')
   const [frequency, setFrequency] = useState('monthly')
   const [startDate, setStartDate] = useState(today())
@@ -187,7 +189,7 @@ const RecurringModal = ({ onClose, onSuccess }) => {
   const handleSave = async () => {
     const amountCents = Math.round(parseFloat(amount) * 100)
     if (!amountCents || amountCents <= 0 || !startDate) {
-      setError('Amount and start date are required')
+      setError(t('transactions.recurringError'))
       return
     }
     setLoading(true)
@@ -209,38 +211,38 @@ const RecurringModal = ({ onClose, onSuccess }) => {
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
         style={{ ...cardStyle, maxWidth: '380px' }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>New Recurring Transaction</h3>
+        <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>{t('transactions.recurringNew')}</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Amount</label>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.amount')}</label>
             <input type="number" step="0.01" min="0.01" value={amount} onChange={e => setAmount(e.target.value)} style={inputStyle2} placeholder="0.00" autoFocus />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Frequency</label>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.frequency')}</label>
             <select value={frequency} onChange={e => setFrequency(e.target.value)} style={inputStyle2}>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
+              <option value="weekly">{t('transactions.weekly')}</option>
+              <option value="monthly">{t('transactions.monthly')}</option>
+              <option value="yearly">{t('transactions.yearly')}</option>
             </select>
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Start Date</label>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.startDate')}</label>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle2} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>Note <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
-            <input type="text" value={note} onChange={e => setNote(e.target.value)} style={inputStyle2} placeholder="e.g. Rent" maxLength={500} />
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px' }}>{t('transactions.note')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('transactions.optional')})</span></label>
+            <input type="text" value={note} onChange={e => setNote(e.target.value)} style={inputStyle2} maxLength={500} />
           </div>
           {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
         </div>
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <motion.div whileTap={{ scale: 0.97 }} onClick={onClose}
             style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 500, textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-card)', color: 'var(--text-primary)', background: 'var(--surface)', userSelect: 'none' }}>
-            Cancel
+            {t('transactions.cancel')}
           </motion.div>
           <motion.div whileTap={{ scale: 0.97 }} onClick={loading ? undefined : handleSave}
             style={{ flex: 1, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 600, textAlign: 'center', cursor: loading ? 'not-allowed' : 'pointer', background: 'var(--amaranth-btn)', color: 'white', opacity: loading ? 0.7 : 1, userSelect: 'none' }}>
-            {loading ? 'Saving…' : 'Save'}
+            {loading ? t('transactions.saving') : t('transactions.save')}
           </motion.div>
         </div>
       </motion.div>
@@ -254,10 +256,15 @@ const TransactionModal = ({ transaction, categories, onSave, onClose, loading, e
   const [categoryId, setCategoryId] = useState(transaction?.category_id || '')
   const [txDate, setTxDate] = useState(transaction?.tx_date || today())
   const [note, setNote] = useState(transaction?.note || '')
+  const [localError, setLocalError] = useState('')
 
   const handleSave = () => {
     const amountCents = Math.round(parseFloat(amount) * 100)
-    if (!amountCents || amountCents <= 0 || !categoryId || !txDate) return
+    if (!amountCents || amountCents <= 0 || !categoryId || !txDate) {
+      setLocalError(t('transactions.fillRequired'))
+      return
+    }
+    setLocalError('')
     onSave({ amount_cents: amountCents, category_id: categoryId, tx_date: txDate, note: note.trim() || null })
   }
 
@@ -272,7 +279,7 @@ const TransactionModal = ({ transaction, categories, onSave, onClose, loading, e
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
+        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)', maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>
@@ -310,7 +317,7 @@ const TransactionModal = ({ transaction, categories, onSave, onClose, loading, e
             <textarea value={note} onChange={(e) => setNote(e.target.value)} style={{ ...inputStyle, resize: 'none' }} rows={2} placeholder={t('transactions.notePlaceholder')} maxLength={500} />
           </div>
 
-          {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
+          {(localError || error) && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{localError || error}</div>}
         </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
@@ -340,12 +347,8 @@ const Transactions = () => {
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list })
   const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c]))
 
-  const { data: recurringList = [], refetch: refetchRecurring } = useQuery({ queryKey: ['recurring'], queryFn: recurringApi.list })
+  const { data: recurringList = [] } = useQuery({ queryKey: ['recurring'], queryFn: recurringApi.list })
   const queryClient = useQueryClient()
-  const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ['transactions'] })
-    queryClient.invalidateQueries({ queryKey: ['recurring'] })
-  }
   const deleteRecurringMutation = useMutation({ mutationFn: recurringApi.remove, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring'] }) })
 
   const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
@@ -379,9 +382,9 @@ const Transactions = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <h2 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{t('transactions.title')}</h2>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <motion.div whileTap={{ scale: 0.96 }}
             onClick={() => budgetsApi.exportCsv(filters.date_from, filters.date_to)}
             style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface)', border: '0.5px solid var(--border-card)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500, padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none' }}
@@ -528,25 +531,25 @@ const Transactions = () => {
       {/* Recurring section */}
       <div style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '14px', padding: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Recurring Transactions</h3>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{t('transactions.recurringTitle')}</h3>
           <motion.div whileTap={{ scale: 0.96 }} onClick={() => setShowRecurringModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--amaranth-btn)', color: 'white', fontSize: '12px', fontWeight: 500, padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', userSelect: 'none' }}>
-            <span style={{ fontSize: '14px', lineHeight: 1 }}>+</span> Add
+            <span style={{ fontSize: '14px', lineHeight: 1 }}>+</span> {t('transactions.add')}
           </motion.div>
         </div>
         {recurringList.length === 0 ? (
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>No recurring transactions yet.</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>{t('transactions.recurringNone')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {recurringList.map((rt) => (
               <div key={rt.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg)', borderRadius: '10px', border: '1px solid var(--border-card)', opacity: rt.is_active ? 1 : 0.5 }}>
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{formatMoney(rt.amount_cents, currency)}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>{rt.frequency}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>{t(`transactions.${rt.frequency}`)}</span>
                   {rt.note && <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>— {rt.note}</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>next: {rt.next_date}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t('transactions.nextDate')}: {rt.next_date}</span>
                   <button
                     style={{ width: '24px', height: '24px', borderRadius: '6px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
                     onClick={() => deleteRecurringMutation.mutate(rt.id)}
@@ -570,7 +573,6 @@ const Transactions = () => {
         )}
         {showImport && (
           <ImportCsvModal
-            categories={categories}
             onClose={() => setShowImport(false)}
             onSuccess={invalidate}
           />
