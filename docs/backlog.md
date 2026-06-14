@@ -24,7 +24,7 @@
 | A-02 | Login → JWT + refresh cookie | P0 | 3 | `[x]` | Access 15 min; httpOnly cookie 30 days; /me returns user |
 | A-03 | Refresh session silently | P0 | 2 | `[x]` | Silent refresh before expiry; revoked token → 401 |
 | A-04 | Logout + invalidate session | P0 | 1 | `[x]` | refresh_tokens.revoked=true; cookie cleared |
-| A-05 | Telegram Mini App login | P0 | 5 | `[ ]` | initData HMAC verified; user upserted; JWT issued |
+| A-05 | Telegram Mini App login | P0 | 5 | `[x]` | initData HMAC verified; user upserted; JWT issued |
 | A-06 | Update email or currency | Should | 2 | `[ ]` | Validation; email uniqueness check |
 | A-07 | Delete account + all data | Should | 3 | `[ ]` | Cascade delete; GDPR; Phase 2 |
 | A-08 | Change password | Should | 2 | `[ ]` | Old password required; new bcrypt hash |
@@ -70,11 +70,11 @@
 | S-03 | Docker multi-stage build | P0 | 2 | `[x]` | Image <200 MB; non-root user |
 | S-04 | Railway deploy + env secrets | P0 | 2 | `[ ]` | No secrets in code; prod URL live |
 | S-05 | HTTPS + HSTS | P0 | 1 | `[x]` | Railway auto-TLS; HSTS header |
-| S-06 | Rate limiting on auth endpoints | P0 | 2 | `[ ]` | 60/min per IP; 429 with Retry-After |
+| S-06 | Rate limiting on auth endpoints | P0 | 2 | `[x]` | 60/min per IP; 429 with Retry-After |
 | S-07 | Security headers middleware | P0 | 2 | `[x]` | CSP, X-Frame-Options, etc. |
 | S-08 | Automated DB backups to R2 | Must | 3 | `[ ]` | Daily; verified restore; Phase 2 |
 | S-09 | Dependabot for Python + npm | Must | 1 | `[x]` | PRs within 24h of new CVE |
-| S-10 | Sentry integration | Must | 2 | `[ ]` | Errors in Sentry <30s; p95 tracked |
+| S-10 | Sentry integration | Must | 2 | `[x]` | Errors in Sentry <30s; p95 tracked |
 | S-11 | GDPR: export + deletion | Should | 3 | `[ ]` | JSON export; deletion <30s; Phase 2 |
 | S-12 | DB connection pooling | Should | 2 | `[ ]` | Pool 10; overflow 20; Phase 2 |
 | S-13 | OWASP Top 10 checklist review | Must | 5 | `[ ]` | P0/P1 findings fixed before launch |
