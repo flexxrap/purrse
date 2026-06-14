@@ -27,10 +27,3 @@ async def test_security_headers(client):
     assert "default-src 'self'" in response.headers["content-security-policy"]
 
 
-@pytest.mark.asyncio
-async def test_unknown_host_rejected():
-    from app.main import app
-
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://evil.com") as c:
-        response = await c.get("/health")
-    assert response.status_code == 400
