@@ -90,7 +90,7 @@ const Transactions = () => {
   const { t } = useTranslation()
   const currency = user?.currency || 'USD'
 
-  const [filters, setFilters] = useState({ date_from: firstOfMonth(), date_to: today(), category_id: '', type: '' })
+  const [filters, setFilters] = useState({ date_from: firstOfMonth(), date_to: today(), category_id: '', type: '', search: '' })
   const [modal, setModal] = useState(null)
   const [mutError, setMutError] = useState('')
 
@@ -99,7 +99,12 @@ const Transactions = () => {
 
   const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
     queryKey: ['transactions', filters],
-    queryFn: ({ pageParam }) => transactionsApi.list({ ...filters, cursor: pageParam, limit: 50 }),
+    queryFn: ({ pageParam }) => transactionsApi.list({
+      ...filters,
+      search: filters.search.length >= 3 ? filters.search : undefined,
+      cursor: pageParam,
+      limit: 50,
+    }),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor || undefined,
   })
@@ -160,6 +165,26 @@ const Transactions = () => {
               <option value="income">{t('transactions.income')}</option>
             </select>
           </div>
+        </div>
+        <div style={{ marginTop: '10px', position: 'relative' }}>
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+            style={{ ...inputStyle, paddingLeft: '36px' }}
+            placeholder={`${t('transactions.search')} — ${t('transactions.searchHint')}`}
+          />
+          <svg
+            style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)" strokeWidth="2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          {filters.search.length > 0 && filters.search.length < 3 && (
+            <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', color: 'var(--text-muted)' }}>
+              {t('transactions.searchHint')}
+            </span>
+          )}
         </div>
       </div>
 

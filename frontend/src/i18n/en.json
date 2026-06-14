@@ -28,6 +28,8 @@
     "income": "Income",
     "noFound": "No transactions found",
     "noFoundHint": "Try adjusting your filters or add a transaction",
+    "search": "Search notes",
+    "searchHint": "min. 3 characters",
     "loadMore": "Load more",
     "loading": "Loading…",
     "newTitle": "New Transaction",

@@ -43,7 +43,7 @@
 | T-04 | Delete transaction (soft) | P0 | 1 | `[x]` | Sets deleted_at; data recoverable 30 days |
 | T-05 | Create/manage categories | P0 | 3 | `[x]` | Max 50 per user; color validated as hex |
 | T-06 | Filter by date, category, type | Must | 3 | `[x]` | Filters combinable; URL-param driven |
-| T-07 | Search by note text | Should | 2 | `[ ]` | PostgreSQL full-text; min 3 chars; Phase 2 |
+| T-07 | Search by note text | Should | 2 | `[x]` | PostgreSQL full-text; min 3 chars; Phase 2 |
 | T-08 | Import from CSV | Could | 8 | `[ ]` | Column mapping; preview; Phase 3 |
 | T-09 | Export to CSV/PDF | Should | 5 | `[ ]` | Async job; download link; Phase 2 |
 | T-10 | Recurring transactions | Could | 5 | `[ ]` | Weekly/monthly/yearly; Phase 3 |
@@ -129,3 +129,4 @@
 - [x] S-12 DB connection pooling (pool 10, overflow 20) — Done 2026-06-10 (was already implemented)
 - [x] A-06 Update email or currency — Done 2026-06-10
 - [x] A-08 Change password — Done 2026-06-10
+- [x] T-07 Full-text search by note (PostgreSQL tsvector GIN, min 3 chars) — Done 2026-06-10

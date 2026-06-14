@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.category import Category
@@ -56,6 +56,7 @@ async def list_transactions(
     date_to: date | None = None,
     category_id: uuid.UUID | None = None,
     type_filter: str | None = None,
+    search: str | None = None,
     cursor: uuid.UUID | None = None,
     limit: int = _PAGE_SIZE_DEFAULT,
 ) -> tuple[list[Transaction], uuid.UUID | None]:
@@ -85,6 +86,11 @@ async def list_transactions(
             Category,
             Transaction.category_id == Category.id,
         ).where(Category.type == type_filter)
+
+    if search is not None and len(search) >= 3:
+        query = query.where(
+            Transaction.note_tsv.op("@@")(func.plainto_tsquery("simple", search))
+        )
 
     if cursor is not None:
         query = query.where(Transaction.id < cursor)

@@ -1,8 +1,8 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import CheckConstraint, Date, Index, Integer, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import CheckConstraint, Computed, Date, Index, Integer, Text
+from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -33,6 +33,12 @@ class Transaction(Base):
     )
     amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    note_tsv: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('simple', coalesce(note, ''))", persisted=True),
+        nullable=True,
+        deferred=True,
+    )
     tx_date: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         nullable=False,

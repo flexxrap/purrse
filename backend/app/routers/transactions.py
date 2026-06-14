@@ -48,6 +48,7 @@ async def list_transactions(
     date_to: date | None = Query(None),
     category_id: uuid.UUID | None = Query(None),
     type: Literal["income", "expense"] | None = Query(None),
+    search: str | None = Query(None, min_length=3, max_length=200),
     cursor: uuid.UUID | None = Query(None),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_user),
@@ -60,6 +61,7 @@ async def list_transactions(
         date_to=date_to,
         category_id=category_id,
         type_filter=type,
+        search=search,
         cursor=cursor,
         limit=limit,
     )
