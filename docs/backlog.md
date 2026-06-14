@@ -20,7 +20,7 @@
 
 | ID | Story | Priority | SP | Status | AC |
 |----|-------|----------|----|--------|----|
-| A-01 | Register with email + password | P0 | 3 | `[ ]` | bcrypt stored; JWT returned; 400 on duplicate email |
+| A-01 | Register with email + password | P0 | 3 | `[x]` | bcrypt stored; JWT returned; 400 on duplicate email |
 | A-02 | Login → JWT + refresh cookie | P0 | 3 | `[ ]` | Access 15 min; httpOnly cookie 30 days; /me returns user |
 | A-03 | Refresh session silently | P0 | 2 | `[ ]` | Silent refresh before expiry; revoked token → 401 |
 | A-04 | Logout + invalidate session | P0 | 1 | `[ ]` | refresh_tokens.revoked=true; cookie cleared |
