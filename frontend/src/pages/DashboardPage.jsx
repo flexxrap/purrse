@@ -109,6 +109,7 @@ const DashboardPage = () => {
   const { t, i18n } = useTranslation()
 
   const initials = user?.email?.[0]?.toUpperCase() || 'U'
+  const tgPhotoUrl = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url || null
   const isDark = theme === 'dark'
 
   const sidebarBg = isDark
@@ -140,14 +141,14 @@ const DashboardPage = () => {
         style={{ background: sidebarBg, borderBottom: '0.5px solid var(--border)' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={() => setActiveTab('overview')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
             <Logo size={22} dark={isDark} />
             <span style={{
               fontSize: '15px', fontWeight: 500, letterSpacing: '-0.3px',
               background: 'linear-gradient(135deg, #E52B50, #64A0FF)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>purrse</span>
-          </div>
+          </button>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <button onClick={toggleTheme} style={{ ...ghostBtn, padding: '4px 8px', fontSize: '14px' }}>
               {isDark ? '☀️' : '🌙'}
@@ -158,13 +159,12 @@ const DashboardPage = () => {
             >
               {i18n.language === 'en' ? 'RU' : 'EN'}
             </button>
-            <div style={{
-              width: '28px', height: '28px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #E52B50, #64A0FF)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ color: 'white', fontSize: '11px', fontWeight: 700 }}>{initials}</span>
-            </div>
+            <button onClick={() => setActiveTab('settings')} style={{ width: '28px', height: '28px', borderRadius: '50%', overflow: 'hidden', border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0, background: 'linear-gradient(135deg, #E52B50, #64A0FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {tgPhotoUrl
+                ? <img src={tgPhotoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span style={{ color: 'white', fontSize: '11px', fontWeight: 700 }}>{initials}</span>
+              }
+            </button>
           </div>
         </div>
       </div>
@@ -181,14 +181,14 @@ const DashboardPage = () => {
           <div style={{ position: 'absolute', bottom: '-60px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(100,160,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
           {/* Logo */}
-          <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+          <button onClick={() => setActiveTab('overview')} style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
             <Logo size={28} dark={isDark} />
             <span style={{
               fontSize: '17px', fontWeight: 500, letterSpacing: '-0.3px',
               background: 'linear-gradient(135deg, #E52B50, #64A0FF)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>purrse</span>
-          </div>
+          </button>
 
           {/* Nav */}
           <nav style={{ flex: 1, padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: '2px', position: 'relative' }}>
@@ -234,18 +234,17 @@ const DashboardPage = () => {
                 {i18n.language === 'en' ? 'RU' : 'EN'}
               </button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width: '30px', height: '30px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, #E52B50, #64A0FF)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                <span style={{ color: 'white', fontSize: '11px', fontWeight: 700 }}>{initials}</span>
+            <button onClick={() => setActiveTab('settings')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, width: '100%', textAlign: 'left' }}>
+              <div style={{ width: '30px', height: '30px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #E52B50, #64A0FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {tgPhotoUrl
+                  ? <img src={tgPhotoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ color: 'white', fontSize: '11px', fontWeight: 700 }}>{initials}</span>
+                }
               </div>
               <span style={{ fontSize: '12px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user?.email}
               </span>
-            </div>
+            </button>
           </div>
         </aside>
 

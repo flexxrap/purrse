@@ -3,7 +3,6 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import transactionsApi from '../api/transactions'
-import budgetsApi from '../api/budgets'
 import categoriesApi from '../api/categories'
 import recurringApi from '../api/recurring'
 import useAuthStore from '../store/authStore'
@@ -398,18 +397,11 @@ const Transactions = ({ quickAdd, onQuickAddConsumed }) => {
         <h2 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{t('transactions.title')}</h2>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <motion.div whileTap={{ scale: 0.96 }}
-            onClick={() => budgetsApi.exportCsv(filters.date_from, filters.date_to)}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface)', border: '0.5px solid var(--border-card)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500, padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none' }}
-          >
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            CSV
-          </motion.div>
-          <motion.div whileTap={{ scale: 0.96 }}
             onClick={() => setShowImport(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface)', border: '0.5px solid var(--border-card)', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500, padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none' }}
           >
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4 4l4-4m0 0l4 4m-4-4V4" /></svg>
-            Import
+            {t('transactions.import')}
           </motion.div>
           <motion.div whileTap={{ scale: 0.96 }} onClick={() => { setMutError(''); setModal({ tx: null }) }}
             style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--amaranth-btn)', color: 'white', fontSize: '13px', fontWeight: 500, padding: '8px 14px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none' }}
