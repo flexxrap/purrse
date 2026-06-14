@@ -24,11 +24,16 @@ const GoalModal = ({ goal, onSave, onClose, loading, error }) => {
   const [target, setTarget] = useState(goal ? (goal.target_cents / 100).toFixed(2) : '')
   const [current, setCurrent] = useState(goal ? (goal.current_cents / 100).toFixed(2) : '0')
   const [deadline, setDeadline] = useState(goal?.deadline || '')
+  const [localError, setLocalError] = useState('')
 
   const handleSave = () => {
     const targetCents = Math.round(parseFloat(target) * 100)
     const currentCents = Math.round(parseFloat(current || 0) * 100)
-    if (!name.trim() || !targetCents || targetCents <= 0) return
+    if (!name.trim() || !targetCents || targetCents <= 0) {
+      setLocalError(t('goals.fillRequired'))
+      return
+    }
+    setLocalError('')
     onSave({ name: name.trim(), target_cents: targetCents, current_cents: Math.max(0, currentCents), deadline: deadline || null })
   }
 
@@ -41,7 +46,7 @@ const GoalModal = ({ goal, onSave, onClose, loading, error }) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
+        style={{ background: 'var(--surface)', border: '0.5px solid var(--border-card)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.2)', maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: 0, marginBottom: '20px' }}>
@@ -83,7 +88,7 @@ const GoalModal = ({ goal, onSave, onClose, loading, error }) => {
             />
           </div>
 
-          {error && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>}
+          {(localError || error) && <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{localError || error}</div>}
         </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
@@ -199,7 +204,7 @@ const Goals = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '8px' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>{formatMoney(goal.current_cents, currency)} {t('goals.saved')}</span>
                   <span style={{ fontWeight: 600, background: gradient.bar, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    {progress}% of {formatMoney(goal.target_cents, currency)}
+                    {progress}% {t('goals.of')} {formatMoney(goal.target_cents, currency)}
                   </span>
                 </div>
 

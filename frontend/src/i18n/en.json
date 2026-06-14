@@ -90,6 +90,8 @@
     "targetAmount": "Target amount",
     "savedSoFar": "Saved so far",
     "optional": "optional",
+    "of": "of",
+    "fillRequired": "Enter a name and a target amount",
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving…"
