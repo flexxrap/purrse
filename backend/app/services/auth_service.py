@@ -57,6 +57,115 @@ async def _write_audit(
     db.add(AuditLog(user_id=user_id, action=action, ip_address=ip, user_agent=ua))
 
 
+async def _issue_tokens(
+    user: User,
+    db: AsyncSession,
+) -> tuple[str, str]:
+    """Creates a new refresh token row and returns (access_token, raw_refresh_token)."""
+    raw_token, token_hash = generate_refresh_token()
+    expires_at = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    db.add(RefreshToken(user_id=user.id, token_hash=token_hash, expires_at=expires_at))
+    return create_access_token(str(user.id)), raw_token
+
+
+async def login(
+    email: str,
+    password: str,
+    db: AsyncSession,
+    request: Request,
+) -> tuple[User, str, str]:
+    """
+    Verifies credentials. Returns (user, access_token, raw_refresh_token).
+    Raises HTTP 401 on bad credentials. Writes audit_log on both success and failure.
+    """
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    bad_creds = user is None or user.password_hash is None
+    if bad_creds or not verify_password(password, user.password_hash):  # type: ignore[arg-type]
+        # Still write audit even on failure (user_id may be None if user not found)
+        failed_uid = str(user.id) if user else None
+        await _write_audit(db, "failed_login", failed_uid, request)
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+
+    access_token, raw_token = await _issue_tokens(user, db)
+    await _write_audit(db, "login", str(user.id), request)
+    await db.commit()
+    await db.refresh(user)
+    return user, access_token, raw_token
+
+
+async def refresh_session(
+    raw_token: str,
+    db: AsyncSession,
+) -> tuple[User, str, str]:
+    """
+    Validates a refresh token, revokes it, and issues a new one (rotation).
+    Returns (user, new_access_token, new_raw_refresh_token).
+    Raises HTTP 401 if token is missing, revoked, or expired.
+    """
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    result = await db.execute(
+        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+    )
+    token_row = result.scalar_one_or_none()
+
+    now = datetime.now(timezone.utc)
+    if (
+        token_row is None
+        or token_row.revoked
+        or token_row.expires_at.replace(tzinfo=timezone.utc) < now
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    # Revoke old token
+    token_row.revoked = True
+    db.add(token_row)
+
+    user = await db.get(User, token_row.user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    access_token, raw_new_token = await _issue_tokens(user, db)
+    await db.commit()
+    await db.refresh(user)
+    return user, access_token, raw_new_token
+
+
+async def logout(
+    raw_token: str | None,
+    user_id: str,
+    db: AsyncSession,
+    request: Request,
+) -> None:
+    """Revokes the refresh token (if present) and writes audit_log."""
+    if raw_token:
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        result = await db.execute(
+            select(RefreshToken).where(
+                RefreshToken.token_hash == token_hash,
+                RefreshToken.user_id == user_id,
+            )
+        )
+        token_row = result.scalar_one_or_none()
+        if token_row:
+            token_row.revoked = True
+            db.add(token_row)
+
+    await _write_audit(db, "logout", user_id, request)
+    await db.commit()
+
+
 async def register(
     email: str,
     password: str,
@@ -78,14 +187,9 @@ async def register(
     db.add(user)
     await db.flush()  # populate user.id before creating dependent rows
 
-    raw_token, token_hash = generate_refresh_token()
-    expires_at = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    db.add(RefreshToken(user_id=user.id, token_hash=token_hash, expires_at=expires_at))
-
+    access_token, raw_token = await _issue_tokens(user, db)
     await _write_audit(db, "register", str(user.id), request)
 
     await db.commit()
     await db.refresh(user)
-
-    access_token = create_access_token(str(user.id))
     return user, access_token, raw_token

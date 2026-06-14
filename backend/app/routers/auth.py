@@ -1,11 +1,18 @@
 import logging
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db
-from app.schemas.user import RegisterRequest, TokenResponse
-from app.services.auth_service import REFRESH_TOKEN_EXPIRE_DAYS, register
+from app.dependencies import get_current_user, get_db
+from app.models.user import User
+from app.schemas.user import LoginRequest, RegisterRequest, TokenResponse
+from app.services.auth_service import (
+    REFRESH_TOKEN_EXPIRE_DAYS,
+    login,
+    logout,
+    refresh_session,
+    register,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +33,10 @@ def _set_refresh_cookie(response: Response, raw_token: str) -> None:
     )
 
 
+def _clear_refresh_cookie(response: Response) -> None:
+    response.delete_cookie(key="refresh_token", path="/auth/refresh")
+
+
 @router.post("/register", response_model=TokenResponse)
 async def register_user(
     body: RegisterRequest,
@@ -41,3 +52,58 @@ async def register_user(
     )
     _set_refresh_cookie(response, raw_refresh)
     return TokenResponse(access_token=access_token, user=user)
+
+
+@router.post("/login", response_model=TokenResponse)
+async def login_user(
+    body: LoginRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    user, access_token, raw_refresh = await login(
+        email=body.email,
+        password=body.password,
+        db=db,
+        request=request,
+    )
+    _set_refresh_cookie(response, raw_refresh)
+    return TokenResponse(access_token=access_token, user=user)
+
+
+@router.post("/refresh")
+async def refresh_token(
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+    refresh_token: str | None = Cookie(default=None),
+):
+    if not refresh_token:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+    _user, access_token, raw_new = await refresh_session(
+        raw_token=refresh_token,
+        db=db,
+    )
+    _set_refresh_cookie(response, raw_new)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/logout")
+async def logout_user(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    refresh_token: str | None = Cookie(default=None),
+):
+    await logout(
+        raw_token=refresh_token,
+        user_id=str(current_user.id),
+        db=db,
+        request=request,
+    )
+    _clear_refresh_cookie(response)
+    return {"ok": True}

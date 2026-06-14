@@ -9,6 +9,11 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8)
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
 class UserOut(BaseModel):
     model_config = {"from_attributes": True}
 
