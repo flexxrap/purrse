@@ -28,3 +28,13 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+class UpdateMeRequest(BaseModel):
+    email: EmailStr | None = None
+    currency: str | None = Field(None, min_length=3, max_length=3, pattern=r"^[A-Z]{3}$")
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8)

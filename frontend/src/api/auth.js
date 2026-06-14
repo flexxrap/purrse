@@ -26,6 +26,10 @@ const authApi = {
     return data
   },
 
+  changePassword: async (old_password, new_password) => {
+    await client.post('/user/me/password', { old_password, new_password })
+  },
+
   refresh: async () => {
     const { data } = await client.post('/auth/refresh')
     return data

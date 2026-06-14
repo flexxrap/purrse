@@ -27,9 +27,9 @@
 | A-03 | Refresh session silently | P0 | 2 | `[x]` | Silent refresh before expiry; revoked token → 401 |
 | A-04 | Logout + invalidate session | P0 | 1 | `[x]` | refresh_tokens.revoked=true; cookie cleared |
 | A-05 | Telegram Mini App login | P0 | 5 | `[x]` | initData HMAC verified; user upserted; JWT issued |
-| A-06 | Update email or currency | Should | 2 | `[ ]` | Validation; email uniqueness check |
+| A-06 | Update email or currency | Should | 2 | `[x]` | Validation; email uniqueness check |
 | A-07 | Delete account + all data | Should | 3 | `[ ]` | Cascade delete; GDPR; Phase 2 |
-| A-08 | Change password | Should | 2 | `[ ]` | Old password required; new bcrypt hash |
+| A-08 | Change password | Should | 2 | `[x]` | Old password required; new bcrypt hash |
 
 ---
 
@@ -78,7 +78,7 @@
 | S-09 | Dependabot for Python + npm | Must | 1 | `[x]` | PRs within 24h of new CVE |
 | S-10 | Sentry integration | Must | 2 | `[x]` | Errors in Sentry <30s; p95 tracked |
 | S-11 | GDPR: export + deletion | Should | 3 | `[ ]` | JSON export; deletion <30s; Phase 2 |
-| S-12 | DB connection pooling | Should | 2 | `[ ]` | Pool 10; overflow 20; Phase 2 |
+| S-12 | DB connection pooling | Should | 2 | `[x]` | Pool 10; overflow 20; Phase 2 |
 | S-13 | OWASP Top 10 checklist review | Must | 5 | `[x]` | P0/P1 findings fixed before launch |
 
 ---
@@ -126,3 +126,6 @@
 - [x] F-03 Dark mode toggle (Zustand persist) — Done 2026-06-10
 - [x] F-04 i18n EN/RU (react-i18next) — Done 2026-06-10
 - [x] F-05 Framer Motion animations (cards, modals, progress bars, tab transitions) — Done 2026-06-10
+- [x] S-12 DB connection pooling (pool 10, overflow 20) — Done 2026-06-10 (was already implemented)
+- [x] A-06 Update email or currency — Done 2026-06-10
+- [x] A-08 Change password — Done 2026-06-10

@@ -7,6 +7,13 @@ import useAuthStore from '../store/authStore'
 import useAuth from '../hooks/useAuth'
 import { apiError } from '../utils'
 
+const SuccessBanner = ({ msg }) => (
+  <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#059669', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{msg}</div>
+)
+const ErrorBanner = ({ msg }) => (
+  <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{msg}</div>
+)
+
 const CURRENCIES = [
   { code: 'USD', name: 'US Dollar' },
   { code: 'EUR', name: 'Euro' },
@@ -34,20 +41,46 @@ const Settings = () => {
   const { t, i18n } = useTranslation()
 
   const [currency, setCurrency] = useState(user?.currency || 'USD')
-  const [saveSuccess, setSaveSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [profileSuccess, setProfileSuccess] = useState('')
+  const [profileError, setProfileError] = useState('')
+
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [pwSuccess, setPwSuccess] = useState(false)
+  const [pwError, setPwError] = useState('')
+
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const updateMutation = useMutation({
     mutationFn: (body) => authApi.updateMe(body),
     onSuccess: (updatedUser) => {
       setAuth(accessToken, updatedUser)
-      setSaveSuccess(true)
-      setError('')
-      setTimeout(() => setSaveSuccess(false), 3000)
+      setNewEmail('')
+      setProfileSuccess(updatedUser.email !== user?.email ? t('settings.emailUpdated') : t('settings.saved'))
+      setProfileError('')
+      setTimeout(() => setProfileSuccess(''), 3000)
     },
-    onError: (err) => setError(apiError(err)),
+    onError: (err) => { setProfileError(apiError(err)); setProfileSuccess('') },
   })
+
+  const passwordMutation = useMutation({
+    mutationFn: () => authApi.changePassword(oldPassword, newPassword),
+    onSuccess: () => {
+      setOldPassword(''); setNewPassword('')
+      setPwSuccess(true); setPwError('')
+      setTimeout(() => setPwSuccess(false), 3000)
+    },
+    onError: (err) => { setPwError(apiError(err)); setPwSuccess(false) },
+  })
+
+  const handleSaveProfile = () => {
+    const body = {}
+    if (newEmail.trim()) body.email = newEmail.trim()
+    if (currency !== user?.currency) body.currency = currency
+    if (Object.keys(body).length === 0) return
+    updateMutation.mutate(body)
+  }
 
   return (
     <div style={{ maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -64,6 +97,20 @@ const Settings = () => {
           </div>
         </div>
 
+        {user?.email && (
+          <div>
+            <label style={labelStyle}>{t('settings.newEmail')}</label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              style={inputStyle}
+              placeholder="new@example.com"
+              autoComplete="email"
+            />
+          </div>
+        )}
+
         <div>
           <label style={labelStyle}>{t('settings.currency')}</label>
           <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={inputStyle}>
@@ -73,17 +120,12 @@ const Settings = () => {
           </select>
         </div>
 
-        {error && (
-          <div style={{ background: 'rgba(229,43,80,0.08)', border: '1px solid rgba(229,43,80,0.2)', color: '#E52B50', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{error}</div>
-        )}
-
-        {saveSuccess && (
-          <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#059669', fontSize: '13px', borderRadius: '10px', padding: '10px 14px' }}>{t('settings.saved')}</div>
-        )}
+        {profileError && <ErrorBanner msg={profileError} />}
+        {profileSuccess && <SuccessBanner msg={profileSuccess} />}
 
         <motion.div
           whileTap={{ scale: 0.97 }}
-          onClick={updateMutation.isPending ? undefined : () => updateMutation.mutate({ currency })}
+          onClick={updateMutation.isPending ? undefined : handleSaveProfile}
           style={{
             background: 'var(--amaranth-btn)', color: 'white', borderRadius: '10px', padding: '11px',
             fontSize: '13px', fontWeight: 600, textAlign: 'center',
@@ -94,6 +136,53 @@ const Settings = () => {
           {updateMutation.isPending ? t('settings.saving') : t('settings.saveChanges')}
         </motion.div>
       </div>
+
+      {/* Change password card — only for email users */}
+      {user?.email && (
+        <div style={card}>
+          <p style={sectionTitle}>{t('settings.changePassword')}</p>
+
+          <div>
+            <label style={labelStyle}>{t('settings.oldPassword')}</label>
+            <input
+              type="password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              style={inputStyle}
+              autoComplete="current-password"
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>{t('settings.newPassword')}</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={inputStyle}
+              placeholder={t('settings.newPasswordMin')}
+              autoComplete="new-password"
+            />
+          </div>
+
+          {pwError && <ErrorBanner msg={pwError} />}
+          {pwSuccess && <SuccessBanner msg={t('settings.passwordChanged')} />}
+
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            onClick={passwordMutation.isPending ? undefined : () => passwordMutation.mutate()}
+            style={{
+              background: 'var(--amaranth-btn)', color: 'white', borderRadius: '10px', padding: '11px',
+              fontSize: '13px', fontWeight: 600, textAlign: 'center',
+              cursor: passwordMutation.isPending ? 'not-allowed' : 'pointer',
+              opacity: (passwordMutation.isPending || !oldPassword || newPassword.length < 8) ? 0.5 : 1,
+              userSelect: 'none',
+            }}
+          >
+            {passwordMutation.isPending ? t('settings.saving') : t('settings.changePassword')}
+          </motion.div>
+        </div>
+      )}
 
       {/* Language card */}
       <div style={card}>

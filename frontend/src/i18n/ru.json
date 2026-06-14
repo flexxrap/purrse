@@ -93,7 +93,15 @@
     "signOut": "Выйти",
     "confirmSignOut": "Вы уверены, что хотите выйти?",
     "cancel": "Отмена",
-    "language": "Язык"
+    "language": "Язык",
+    "changePassword": "Сменить пароль",
+    "oldPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "newPasswordMin": "Минимум 8 символов",
+    "passwordChanged": "Пароль изменён!",
+    "updateEmail": "Изменить email",
+    "newEmail": "Новый email",
+    "emailUpdated": "Email обновлён!"
   },
   "auth": {
     "tagline": "Умный учёт финансов",
