@@ -44,9 +44,9 @@
 | T-05 | Create/manage categories | P0 | 3 | `[x]` | Max 50 per user; color validated as hex |
 | T-06 | Filter by date, category, type | Must | 3 | `[x]` | Filters combinable; URL-param driven |
 | T-07 | Search by note text | Should | 2 | `[x]` | PostgreSQL full-text; min 3 chars; Phase 2 |
-| T-08 | Import from CSV | Could | 8 | `[ ]` | Column mapping; preview; Phase 3 |
+| T-08 | Import from CSV | Could | 8 | `[x]` | Column mapping; preview; Phase 3 |
 | T-09 | Export to CSV/PDF | Should | 5 | `[x]` | Async job; download link; Phase 2 |
-| T-10 | Recurring transactions | Could | 5 | `[ ]` | Weekly/monthly/yearly; Phase 3 |
+| T-10 | Recurring transactions | Could | 5 | `[x]` | Weekly/monthly/yearly; Phase 3 |
 
 ---
 
@@ -93,7 +93,8 @@
 | Tech Debt | PyJWT migration, integration tests (real Postgres), frontend tests, jti JWT claim | **Complete** ✅ 2026-06-11 |
 | Frontend deploy | Dockerfile + nginx + railway.toml for frontend service | **Complete** ✅ 2026-06-11 |
 | S-08 DB backups | R2 backups | **Deferred** [-] |
-| Phase 3 | T-08 (CSV import), T-10 (recurring transactions) | Not started |
+| Phase 3 | T-08 (CSV import), T-10 (recurring transactions) | **Complete** ✅ 2026-06-12 |
+| UX polish | Mobile bottom nav, quick-add, logo nav, TG avatar, simplified Transactions header | **Complete** ✅ 2026-06-13 |
 
 ---
 
@@ -143,3 +144,8 @@
 - [x] Tech: Backend integration tests on real Postgres (12 tests, caught timezone bug in refresh_tokens) — Done 2026-06-11
 - [x] Tech: Frontend unit tests — authStore (6 tests), utils (16 tests), authApi (6 tests) — Done 2026-06-11
 - [x] Tech: Frontend Railway deployment (Dockerfile + nginx SPA + railway.toml) — Done 2026-06-11
+- [x] T-08 CSV import — preview endpoint + column mapping + confirm endpoint, 4 tests — Done 2026-06-12
+- [x] T-10 Recurring transactions — CRUD API + APScheduler daily cron + catch-up logic, 6 tests — Done 2026-06-12
+- [x] A-05 Telegram Mini App — auto-auth via initData, tg.ready()/expand(), onboarding modal — Done 2026-06-12
+- [x] UX: mobile bottom navigation bar, quick-add income/expense on Overview — Done 2026-06-13
+- [x] UX: logo click → Overview, avatar shows TG photo → Settings, simplified Transactions header — Done 2026-06-13
