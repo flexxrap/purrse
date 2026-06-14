@@ -60,15 +60,3 @@ jobs:
           severity: CRITICAL
           trivyignores: .trivyignore
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [docker]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Railway CLI
-        run: curl -fsSL https://railway.app/install.sh | bash
-      - name: Deploy to Railway
-        run: ~/.railway/bin/railway up --detach --service backend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
